@@ -1,26 +1,40 @@
+// src/App.tsx
 import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import 'antd/dist/reset.css';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import LoginComponent from './components/auth/LoginComponent';
+import ProjectsComponent from './components/projects/ProjectsComponent';
+import TicketsComponent from './components/tickets/TicketsComponent';
+import SettingsComponent from './components/settings/SettingsComponent';
+import ProtectedRoute from './components/ProtectedRoute';
+import AuthGuard from './components/AuthGuard'
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
-}
+const App: React.FC = () => {
+    return (
+        <Router>
+            <AuthGuard>
+                <Routes>
+                    <Route path="/login" element={<LoginComponent />} />
+                    <Route path="/projects" element={
+                        <ProtectedRoute>
+                            <ProjectsComponent />
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/tickets" element={
+                        <ProtectedRoute>
+                            <TicketsComponent />
+                        </ProtectedRoute>
+                    } />
+                    <Route path="/settings" element={
+                        <ProtectedRoute>
+                            <SettingsComponent />
+                        </ProtectedRoute>
+                    } />
+                    {/* Add more routes as needed */}
+                </Routes>
+            </AuthGuard>
+        </Router>
+    );
+};
 
 export default App;

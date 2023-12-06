@@ -17,7 +17,7 @@ export const fetchTickets = createAsyncThunk(
     }
 );
 
-const ticketsSlice = createSlice({
+const ticketSlice = createSlice({
     name: 'tickets',
     initialState: {
         tickets: [] as Ticket[],
@@ -39,4 +39,4 @@ const ticketsSlice = createSlice({
     }
 });
 
-export default ticketsSlice.reducer;
+export default ticketSlice.reducer;

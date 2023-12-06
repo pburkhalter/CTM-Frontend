@@ -4,10 +4,10 @@ import { AppDispatch, RootState } from '../../store/store';
 import { Card, Button } from "antd";
 import { ReloadOutlined } from "@ant-design/icons";
 import AuthenticatedLayoutComponent from "../layout/AuthenticatedLayoutComponent";
-import ProjectListComponent from "./ProjectsListComponent";
-import { fetchMyProjects, fetchAllProjects } from "../../features/projects/projectsSlice";
+import ProjectListComponent from "./ProjectListComponent";
+import { fetchMyProjects, fetchAllProjects } from "../../features/projects/projectSlice";
 
-const ProjectsComponent: React.FC = () => {
+const ProjectComponent: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
     const { myProjects, allProjects, loading } = useSelector((state: RootState) => state.projects);
 
@@ -33,7 +33,7 @@ const ProjectsComponent: React.FC = () => {
                 <ProjectListComponent projects={myProjects} loadingState={loading} />
             </Card>
             <Card
-                title="Projekte"
+                title="Alle Projekte"
                 extra={<Button onClick={handleReloadAllProjects} icon={<ReloadOutlined />} type="default" />}
             >
                 <ProjectListComponent projects={allProjects || []} myProjects={myProjects || []} loadingState={loading} />
@@ -42,4 +42,4 @@ const ProjectsComponent: React.FC = () => {
     );
 };
 
-export default ProjectsComponent;
+export default ProjectComponent;

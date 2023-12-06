@@ -2,14 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Button, Input, Space, Table, Tag } from 'antd';
 import { SearchOutlined } from "@ant-design/icons";
 import type { ColumnsType, TableRowSelection, TablePaginationConfig, SorterResult, FilterValue } from 'antd/es/table/interface';
-
-export interface Project {
-    id: string;
-    name: string;
-    isArchived: boolean;
-    lastUpdated: string;
-    tickets: any[];
-}
+import {Project} from "../../features/projects/types";
 
 const ProjectListComponent: React.FC<{ projects: Project[], myProjects?: Project[], loadingState: boolean }> = ({ projects, myProjects, loadingState }) => {
     const [sortedInfo, setSortedInfo] = useState<SorterResult<Project>>({});
@@ -103,7 +96,6 @@ const ProjectListComponent: React.FC<{ projects: Project[], myProjects?: Project
                 />
             </Space>
             <Table
-                rowSelection={rowSelection}
                 columns={columns}
                 dataSource={filteredProjects.map(project => ({ ...project, key: project.id }))}
                 loading={loadingState}

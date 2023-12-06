@@ -1,6 +1,6 @@
 export interface Ticket {
     category: string;
-    cost: number | null;
+    status: any | null;
     createdAt: string; // ISO date string
     deadline: string | null; // ISO date string or null
     description: string | null;

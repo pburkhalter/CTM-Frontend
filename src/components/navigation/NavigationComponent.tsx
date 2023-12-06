@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import {
     ContainerOutlined,
     MenuUnfoldOutlined,
-    DesktopOutlined,
+    DesktopOutlined, UserOutlined, SettingOutlined, HeatMapOutlined,
 } from '@ant-design/icons';
 
 // Define the MenuItem type
@@ -22,9 +22,12 @@ const NavigationComponent: React.FC = () => {
 
     // Define the items array using the MenuItem type
     const items: MenuItem[] = [
-        { label: 'Tickets', key: '1', icon: <ContainerOutlined />, route: '/tickets' },
-        { label: 'Projekte', key: '2', icon: <MenuUnfoldOutlined />, route: '/projects' },
-        { label: 'Einstellungen', key: '3', icon: <DesktopOutlined />, route: '/settings' }
+        { label: 'Übersicht', key: '1', icon: <HeatMapOutlined />, route: '/overview' },
+        { label: 'Tickets', key: '2', icon: <ContainerOutlined />, route: '/tickets' },
+        { label: 'Projekte', key: '3', icon: <MenuUnfoldOutlined />, route: '/projects' },
+        { label: 'Benutzer', key: '4', icon: <UserOutlined />, route: '/users' },
+        { label: 'Einstellungen', key: '5', icon: <SettingOutlined />, route: '/settings' }
+
     ];
 
     useEffect(() => {

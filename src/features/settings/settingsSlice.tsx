@@ -1,13 +1,15 @@
 import {createAsyncThunk, createSlice} from '@reduxjs/toolkit';
 import apiService from "../../api/apiService";
+import {fetchAllProjects, fetchMyProjects} from "../projects/projectSlice";
 
 export const fetchSettings = createAsyncThunk(
     'settings/fetchSettings',
     async (_, thunkAPI) => {
-
-        const accessToken = localStorage.getItem("accessToken")
-        if(accessToken){
-            return await apiService.get('service/info', accessToken);
+        const accessToken = localStorage.getItem("accessToken");
+        if (accessToken) {
+            const response = await apiService.get('service/stats', accessToken);
+            console.log(response); // Log the response to see its structure
+            return response;
         }
     }
 );
@@ -15,21 +17,26 @@ export const fetchSettings = createAsyncThunk(
 const settingsSlice = createSlice({
     name: 'settings',
     initialState: {
-        version_major: '?',
-        version_minor: '?',
-        version_patch: '?',
-        version_status: '?',
+        version_major: 0,
+        version_minor: 0,
+        version_patch: 0,
+        version_status: '',
     },
-    reducers: {
-        settingsFetched: (state, action) => {
-            state.version_major = action.payload.info.version.major;
-            state.version_minor = action.payload.info.version.minor;
-            state.version_patch = action.payload.info.version.patch;
-            state.version_status = action.payload.info.version.patch;
-        },
+    reducers: {},
+    extraReducers: (builder) => {
+        builder
+            .addCase(fetchSettings.fulfilled, (state, action) => {
+                if (action.payload && action.payload.info && action.payload.info.version) {
+                    const { major, minor, patch, status } = action.payload.info.version;
+                    state.version_major = major;
+                    state.version_minor = minor;
+                    state.version_patch = patch;
+                    state.version_status = status;
+                }
+            })
+    }
 
-    },
 });
 
-export const { settingsFetched } = settingsSlice.actions;
+
 export default settingsSlice.reducer;

@@ -2,23 +2,21 @@ import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {Button, Card, Divider} from "antd";
 import {AppDispatch, RootState} from '../../store/store';
-import TicketsListComponent from './TicketsListComponent';
-import {fetchAllProjects, fetchMyProjects} from "../../features/projects/projectsSlice";
+import TicketListComponent from './TicketListComponent';
+import {fetchAllProjects, fetchMyProjects} from "../../features/projects/projectSlice";
 import AuthenticatedLayoutComponent from "../layout/AuthenticatedLayoutComponent";
 import {ReloadOutlined} from "@ant-design/icons";
-import TicketsFullSearchComponent from "./TicketsFullSearchComponent";
+import TicketFullSearchComponent from "./TicketFullSearchComponent";
 
-const TicketsComponent: React.FC = () => {
+const TicketComponent: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
-    const { allProjects, myProjects, loading } = useSelector((state: RootState) => state.projects);
+    const { myProjects, loading } = useSelector((state: RootState) => state.projects);
 
     useEffect(() => {
-        dispatch(fetchAllProjects());
         dispatch(fetchMyProjects());
     }, [dispatch]);
 
     const handleReloadProjects = () => {
-        dispatch(fetchAllProjects());
         dispatch(fetchMyProjects());
     };
 
@@ -37,7 +35,7 @@ const TicketsComponent: React.FC = () => {
                 title="Projektübergreifende Suche"
                 extra={<Button onClick={handleReloadProjects} icon={<ReloadOutlined />} type="default" />}
             >
-                <TicketsFullSearchComponent tickets={allTickets || []}/>
+                <TicketFullSearchComponent tickets={allTickets || []}/>
             </Card>
 
             <Divider></Divider>
@@ -48,11 +46,12 @@ const TicketsComponent: React.FC = () => {
                     title={project.name}
                     extra={<Button onClick={handleReloadProjects} icon={<ReloadOutlined />} type="default" />}
                 >
-                    <TicketsListComponent tickets={project.tickets || []}/>
+                    {/* Pass only the tickets for this specific project */}
+                    <TicketListComponent tickets={project.tickets || []}/>
                 </Card>
             ))}
         </AuthenticatedLayoutComponent>
     );
 };
 
-export default TicketsComponent;
+export default TicketComponent;

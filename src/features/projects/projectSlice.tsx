@@ -1,15 +1,10 @@
-// src/features/projects/projectsSlice.ts
 import {createAsyncThunk, createSlice} from '@reduxjs/toolkit';
 import apiService from '../../api/apiService';
 import {Project} from './types';
-import {RootState} from "../../store/store";
 
 export const fetchAllProjects = createAsyncThunk(
     'projects/fetchAllProjects',
     async (_, thunkAPI) => {
-        //const state = thunkAPI.getState() as RootState;
-        //const accessToken = state.auth.accessToken;
-
         const accessToken = localStorage.getItem("accessToken")
         if(accessToken){
             return await apiService.get('projects/', accessToken);
@@ -20,10 +15,7 @@ export const fetchAllProjects = createAsyncThunk(
 export const fetchMyProjects = createAsyncThunk(
     'projects/fetchMyProjects',
     async (_, thunkAPI) => {
-        const state = thunkAPI.getState() as RootState;
-        const id = state.auth.id;
-
-        //const accessToken = state.auth.accessToken;
+        const id = localStorage.getItem('id')
         const accessToken = localStorage.getItem("accessToken")
 
         if (accessToken){
@@ -32,7 +24,7 @@ export const fetchMyProjects = createAsyncThunk(
     }
 );
 
-const projectsSlice = createSlice({
+const projectSlice = createSlice({
     name: 'projects',
     initialState: {
         myProjects: [] as Project[],
@@ -65,4 +57,4 @@ const projectsSlice = createSlice({
     }
 });
 
-export default projectsSlice.reducer;
+export default projectSlice.reducer;

@@ -4,7 +4,7 @@ import {Layout, Space, Card, Avatar, Flex, Button} from "antd";
 import DefaultFooterComponent from "../footer/DefaultFooterComponent";
 import NavigationComponent from "../navigation/NavigationComponent";
 import {ReloadOutlined} from "@ant-design/icons";
-import TicketsListComponent from "../tickets/TicketsListComponent";
+import TicketListComponent from "../tickets/TicketListComponent";
 
 const { Header, Footer, Sider, Content } = Layout;
 

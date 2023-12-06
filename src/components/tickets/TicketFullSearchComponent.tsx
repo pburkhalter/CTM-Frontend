@@ -10,13 +10,12 @@ interface TicketsListProps {
     tickets: Ticket[];
 }
 
-const TicketsListComponent: React.FC<TicketsListProps> = ({ tickets }) => {
+const TicketFullSearchComponent: React.FC<TicketsListProps> = ({ tickets }) => {
     const [sortedInfo, setSortedInfo] = useState<SorterResult<Ticket>>({});
-    const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
     const [searchText, setSearchText] = useState('');
+    const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
 
-    const formatDateTime = (date: string | null) => date ? moment(date).format('DD/MM/YYYY HH:mm') : 'N/A';
-    const formatCost = (cost: number | null) => cost ? `$${cost.toFixed(2)}` : 'Free';
+    const formatDateTime = (date: string | null) => date ? moment(date).format('DD.MM.YYYY HH:mm') : 'n/A';
 
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchText(e.target.value);
@@ -27,6 +26,33 @@ const TicketsListComponent: React.FC<TicketsListProps> = ({ tickets }) => {
         setSearchText('');
     };
 
+    // Prepare unique status options for the Select component
+    const statusOptions = Array.from(new Set(tickets.map(ticket => ticket.status?.name).filter(Boolean)));
+
+    const statusFilters = statusOptions.map(status => ({
+        text: status,
+        value: status,
+    }));
+
+    const seeMyTickets = () => {
+        const myFullName = localStorage.getItem('fullName');
+        if (myFullName) {
+            setSortedInfo({});
+            setSearchText(myFullName ? myFullName.toLowerCase() : ''); // Ensure searchText is always a string
+        }
+    };
+
+    const filteredTickets = searchText.length > 0 ? tickets.filter(ticket => {
+        const ticketName = ticket.name ? ticket.name.toLowerCase() : '';
+        const responsibleName = ticket.responsible && ticket.responsible.fullName
+            ? ticket.responsible.fullName.toLowerCase()
+            : '';
+
+        return ticketName.includes(searchText.toLowerCase()) ||
+            responsibleName.includes(searchText.toLowerCase());
+    }) : [];
+
+
     const columns: ColumnsType<Ticket> = [
         {
             title: 'Name',
@@ -35,22 +61,17 @@ const TicketsListComponent: React.FC<TicketsListProps> = ({ tickets }) => {
             sorter: (a, b) => a.name.localeCompare(b.name),
         },
         {
-            title: 'Kosten',
-            dataIndex: 'cost',
-            key: 'cost',
-            render: cost => formatCost(cost),
+            title: 'Status',
+            dataIndex: 'status',
+            key: 'status',
+            filters: statusFilters,
+            onFilter: (value, record) => record.status?.name === value,
+            render: status => status ? status.name : 'N/A',
             sorter: (a, b) => {
-                const costA = a.cost === null ? 0 : a.cost;
-                const costB = b.cost === null ? 0 : b.cost;
-                return costA - costB;
+                const statusA = a.status ? a.status.name : '';
+                const statusB = b.status ? b.status.name : '';
+                return statusA.localeCompare(statusB);
             },
-        },
-        {
-            title: 'Erstellt',
-            dataIndex: 'createdAt',
-            key: 'createdAt',
-            render: createdAt => formatDateTime(createdAt),
-            sorter: (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
         },
         {
             title: 'Deadline',
@@ -74,24 +95,26 @@ const TicketsListComponent: React.FC<TicketsListProps> = ({ tickets }) => {
                 return nameA.localeCompare(nameB);
             },
         },
+        //{
+        //    title: 'Projekt',
+        //    dataIndex: 'projectName',
+        //    key: 'projectName',
+        //}
     ];
-
-    const filteredTickets = tickets.filter(ticket =>
-        ticket.name.toLowerCase().includes(searchText.toLowerCase()) ||
-        (ticket.responsible && ticket.responsible.fullName.toLowerCase().includes(searchText.toLowerCase()))
-    );
 
     return (
         <>
             <Space style={{ marginBottom: 16 }}>
                 <Button onClick={clearAll}>Filter und Sortierung zurücksetzen</Button>
+                <Button onClick={seeMyTickets}>Nur Meine Tickets zeigen</Button>
+
                 <Input
                     addonBefore={<SearchOutlined />}
                     placeholder="Suche nach Ticket oder Verantwortlichem"
                     onChange={handleSearch}
                     value={searchText}
-                    style={{ width: 400 }}
                 />
+
             </Space>
             <Table
                 columns={columns}
@@ -102,17 +125,11 @@ const TicketsListComponent: React.FC<TicketsListProps> = ({ tickets }) => {
                     showSizeChanger: true,
                 }}
                 locale={{
-                    emptyText: 'Keine Daten gefunden', // Customize no data text here
+                    emptyText: 'Starte eine Suche...',
                 }}
             />
         </>
     );
 };
 
-export default TicketsListComponent;
-
-
-
-
-
-
+export default TicketFullSearchComponent;

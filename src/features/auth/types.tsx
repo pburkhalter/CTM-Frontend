@@ -1,14 +1,6 @@
 export interface Credentials {
-    username: string;
+    email: string;
     password: string;
-}
-
-export interface AccessToken {
-    accessToken: string;
-}
-
-export interface RefreshToken {
-    refreshToken: string;
 }
 
 export interface AuthResponse {
@@ -20,12 +12,13 @@ export interface AuthResponse {
 export interface AuthData {
     accessToken: string;
     refreshToken: string;
-    // other fields that your API might return
 }
 
 export interface AuthState {
+    isAuthenticated: boolean;
     accessToken: string | null;
     refreshToken: string | null;
-    isAuthenticated: boolean;
-    // ... other auth state properties
+    fullName: string | null;
+    email: string | null;
+    id: string | null;
 }

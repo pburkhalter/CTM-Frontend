@@ -10,9 +10,8 @@ interface TicketsListProps {
     tickets: Ticket[];
 }
 
-const TicketsListComponent: React.FC<TicketsListProps> = ({ tickets }) => {
+const TicketsFullSearchComponent: React.FC<TicketsListProps> = ({ tickets }) => {
     const [sortedInfo, setSortedInfo] = useState<SorterResult<Ticket>>({});
-    const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
     const [searchText, setSearchText] = useState('');
 
     const formatDateTime = (date: string | null) => date ? moment(date).format('DD/MM/YYYY HH:mm') : 'N/A';
@@ -25,6 +24,11 @@ const TicketsListComponent: React.FC<TicketsListProps> = ({ tickets }) => {
     const clearAll = () => {
         setSortedInfo({});
         setSearchText('');
+    };
+
+    const seeMyTickets = () => {
+        setSortedInfo({});
+        setSearchText(localStorage.getItem('fullName') || '');
     };
 
     const columns: ColumnsType<Ticket> = [
@@ -76,15 +80,17 @@ const TicketsListComponent: React.FC<TicketsListProps> = ({ tickets }) => {
         },
     ];
 
-    const filteredTickets = tickets.filter(ticket =>
+    const filteredTickets = searchText.length > 0 ? tickets.filter(ticket =>
         ticket.name.toLowerCase().includes(searchText.toLowerCase()) ||
         (ticket.responsible && ticket.responsible.fullName.toLowerCase().includes(searchText.toLowerCase()))
-    );
+    ) : [];
 
     return (
         <>
             <Space style={{ marginBottom: 16 }}>
                 <Button onClick={clearAll}>Filter und Sortierung zurücksetzen</Button>
+                <Button onClick={seeMyTickets}>Nur Meine Tickets zeigen</Button>
+
                 <Input
                     addonBefore={<SearchOutlined />}
                     placeholder="Suche nach Ticket oder Verantwortlichem"
@@ -102,17 +108,11 @@ const TicketsListComponent: React.FC<TicketsListProps> = ({ tickets }) => {
                     showSizeChanger: true,
                 }}
                 locale={{
-                    emptyText: 'Keine Daten gefunden', // Customize no data text here
+                    emptyText: 'Starte eine Suche...',
                 }}
             />
         </>
     );
 };
 
-export default TicketsListComponent;
-
-
-
-
-
-
+export default TicketsFullSearchComponent;

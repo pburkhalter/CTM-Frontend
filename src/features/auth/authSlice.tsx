@@ -1,41 +1,29 @@
 import { createSlice } from '@reduxjs/toolkit';
-import {useSelector} from "react-redux";
-import {RootState} from "../../store/store";
+import {AuthState} from "./types";
 
-const refreshToken = useSelector((state: RootState) => state.auth.refreshToken);
+const initialState: AuthState = {
+    isAuthenticated: false,
+    accessToken: null,
+    refreshToken: null,
+    fullName: null,
+    email: null,
+    id: null
+};
 
 const authSlice = createSlice({
     name: 'auth',
-    initialState: {
-        accessToken: null,
-        refreshToken: null,
-        isAuthenticated: false,
-    },
+    initialState: initialState,
     reducers: {
         loginSuccess: (state, action) => {
-            state.accessToken = action.payload.accessToken;
-            state.refreshToken = action.payload.refreshToken;
             state.isAuthenticated = true;
-        },
-        logout: (state) => {
-            state.accessToken = null;
-            state.refreshToken = null;
-            state.isAuthenticated = false;
-        },
-    },
-    extraReducers: (builder) => {
-        builder
-            .addCase(refreshToken.fulfilled, (state, action) => {
-                // Update state with new tokens
-                state.accessToken = action.payload.accessToken;
-                state.refreshToken = action.payload.refreshToken;
-            })
-            .addCase(refreshToken.rejected, (state, action) => {
-                // Handle rejection (e.g., clear tokens, update state)
-            });
+            state.accessToken = localStorage.getItem('accessToken');
+            state.refreshToken = localStorage.getItem('refreshToken');
+            state.fullName = localStorage.getItem('fullName');
+            state.email = localStorage.getItem('email');
+            state.id = localStorage.getItem('id');
+        }
     }
-
 });
 
-export const { loginSuccess, logout } = authSlice.actions;
+export const { loginSuccess } = authSlice.actions;
 export default authSlice.reducer;

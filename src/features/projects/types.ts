@@ -3,5 +3,5 @@ export interface Project {
     isArchived: boolean;
     lastUpdated: string;
     name: string;
-    tickets: any[]; // Define a more specific type for tickets if available
+    tickets: any[];
 }

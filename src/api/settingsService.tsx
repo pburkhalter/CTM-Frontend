@@ -1,7 +1,7 @@
 import config from '../config';
-import {Credentials, AuthResponse, AuthData, AccessToken} from '../features/auth/types'
+import {AuthResponse, AuthData} from '../features/auth/types'
 
-const fetchSettings = async (authPayload: AccessToken): Promise<AuthResponse> => {
+const fetchSettings = async (authPayload: AuthData): Promise<AuthResponse> => {
     try {
         const token = authPayload.accessToken;
 

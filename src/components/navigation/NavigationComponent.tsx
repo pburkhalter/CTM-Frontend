@@ -1,47 +1,42 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Menu, MenuProps } from 'antd';
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
     ContainerOutlined,
     MenuUnfoldOutlined,
     DesktopOutlined,
 } from '@ant-design/icons';
 
-type MenuItem = Required<MenuProps>['items'][number] & { route?: string }; // Extend the type to include 'route'
-
-function getItem(
-    label: React.ReactNode,
-    key: React.Key,
-    icon?: React.ReactNode,
-    route?: string, // Add route parameter
-): MenuItem {
-    return {
-        key,
-        icon,
-        label,
-        route, // Include route in the item
-    };
+// Define the MenuItem type
+interface MenuItem {
+    key: string;
+    icon: React.ReactNode;
+    label: string;
+    route?: string;
 }
-
-// Assign routes to each menu item
-const items: MenuItem[] = [
-    getItem('Tickets', '1', <ContainerOutlined />, '/tickets'),
-    getItem('Projekte', '2', <MenuUnfoldOutlined />, '/projects'),
-    getItem('Einstellungen', '3', <DesktopOutlined />, '/settings')
-];
-
-const navigationStyle: React.CSSProperties = {
-    width: '100%',
-    flexBasis: 'inherit',
-};
 
 const NavigationComponent: React.FC = () => {
     const navigate = useNavigate();
+    const location = useLocation();
+    const [selectedKey, setSelectedKey] = useState<string>('1');
+
+    // Define the items array using the MenuItem type
+    const items: MenuItem[] = [
+        { label: 'Tickets', key: '1', icon: <ContainerOutlined />, route: '/tickets' },
+        { label: 'Projekte', key: '2', icon: <MenuUnfoldOutlined />, route: '/projects' },
+        { label: 'Einstellungen', key: '3', icon: <DesktopOutlined />, route: '/settings' }
+    ];
+
+    useEffect(() => {
+        // Update the selected key based on the current route
+        const currentKey = items.find(item => item.route === location.pathname)?.key;
+        if (currentKey) {
+            setSelectedKey(currentKey);
+        }
+    }, [location.pathname, items]);
 
     const onClick: MenuProps['onClick'] = (e) => {
-        // Find the clicked item
         const item = items.find(item => item.key === e.key);
-        // Navigate if route is defined
         if (item && item.route) {
             navigate(item.route);
         }
@@ -50,8 +45,7 @@ const NavigationComponent: React.FC = () => {
     return (
         <Menu
             onClick={onClick}
-            style={navigationStyle}
-            defaultSelectedKeys={['1']}
+            selectedKeys={[selectedKey]}
             mode="horizontal"
             items={items}
         />

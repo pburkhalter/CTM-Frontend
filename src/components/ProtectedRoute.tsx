@@ -1,14 +1,21 @@
-import React from 'react';
-import { Navigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-import { RootState } from '../store/store'; // Adjust the import path as necessary
+import React, {useEffect, useState} from 'react';
+import {useLocation, useNavigate} from 'react-router-dom';
+import {useDispatch} from "react-redux";
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
+    const navigate = useNavigate();
+    const location = useLocation();
+    const dispatch = useDispatch();
 
-    if (!isAuthenticated) {
-        return <Navigate to="/login" replace />;
-    }
+    useEffect(() => {
+        const token = localStorage.getItem('accessToken');
+
+        if (!token) {
+            navigate('/login', { state: { from: location }, replace: true });
+        } else {
+
+        }
+    }, [navigate, location, dispatch]);
 
     return <>{children}</>;
 };

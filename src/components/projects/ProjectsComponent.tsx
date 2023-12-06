@@ -1,25 +1,42 @@
-import React, { useEffect, useState } from 'react';
-import {useDispatch, useSelector} from 'react-redux';
-import {RootState} from '../../store/store';
+import React, { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '../../store/store';
 import { Card, Button } from "antd";
 import { ReloadOutlined } from "@ant-design/icons";
 import AuthenticatedLayoutComponent from "../layout/AuthenticatedLayoutComponent";
 import ProjectListComponent from "./ProjectsListComponent";
-import {fetchProjects} from "../../features/projects/projectsSlice"; // Import the apiService
+import { fetchMyProjects, fetchAllProjects } from "../../features/projects/projectsSlice";
 
 const ProjectsComponent: React.FC = () => {
-    const dispatch = useDispatch();
-    const { projects, loading } = useSelector((state: RootState) => state.projects);
+    const dispatch = useDispatch<AppDispatch>();
+    const { myProjects, allProjects, loading } = useSelector((state: RootState) => state.projects);
 
     useEffect(() => {
-        dispatch(fetchProjects());
+        dispatch(fetchMyProjects());
+        dispatch(fetchAllProjects());
     }, [dispatch]);
 
+    const handleReloadMyProjects = () => {
+        dispatch(fetchMyProjects());
+    };
+
+    const handleReloadAllProjects = () => {
+        dispatch(fetchAllProjects());
+    };
 
     return (
         <AuthenticatedLayoutComponent>
-            <Card title="Projekte" extra={<Button onClick={() => console.log('click')} icon={<ReloadOutlined />} type="default" />}>
-                <ProjectListComponent projects={projects} loading={loading} />
+            <Card
+                title="Meine Projekte"
+                extra={<Button onClick={handleReloadMyProjects} icon={<ReloadOutlined />} type="default" />}
+            >
+                <ProjectListComponent projects={myProjects} loadingState={loading} />
+            </Card>
+            <Card
+                title="Projekte"
+                extra={<Button onClick={handleReloadAllProjects} icon={<ReloadOutlined />} type="default" />}
+            >
+                <ProjectListComponent projects={allProjects || []} myProjects={myProjects || []} loadingState={loading} />
             </Card>
         </AuthenticatedLayoutComponent>
     );

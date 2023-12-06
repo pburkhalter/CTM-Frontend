@@ -1,125 +1,118 @@
-import React, { useState } from 'react';
-import { Button, Input, Space, Table } from 'antd';
+import React, { useEffect, useState } from 'react';
+import { Button, Input, Space, Table, Tag } from 'antd';
 import { SearchOutlined } from "@ant-design/icons";
 import type { ColumnsType, TableRowSelection, TablePaginationConfig, SorterResult, FilterValue } from 'antd/es/table/interface';
 
-interface DataType {
-    key: React.Key;
+export interface Project {
+    id: string;
     name: string;
-    responsible: string;
-    status: string;
-    due_date: string;
+    isArchived: boolean;
+    lastUpdated: string;
+    tickets: any[];
 }
 
-const data: DataType[] = [
-    {
-        key: '1',
-        name: 'John Brown',
-        responsible: 'Test',
-        status: 'test',
-        due_date: 'New York No. 1 Lake Park',
-    },
-    // ... other data items
-];
-
-const ProjectListComponent: React.FC<{ projects: any[], loading: boolean }> = ({ projects, loading }) => {
-    const [filteredInfo, setFilteredInfo] = useState<Record<string, FilterValue | null>>({});
-    const [sortedInfo, setSortedInfo] = useState<SorterResult<DataType>>({});
+const ProjectListComponent: React.FC<{ projects: Project[], myProjects?: Project[], loadingState: boolean }> = ({ projects, myProjects, loadingState }) => {
+    const [sortedInfo, setSortedInfo] = useState<SorterResult<Project>>({});
     const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+    const [searchText, setSearchText] = useState('');
+
+    // Update selectedRowKeys whenever myProjects changes
+    useEffect(() => {
+        if (myProjects) {
+            const newSelectedKeys = myProjects.map(p => p.id);
+            setSelectedRowKeys(newSelectedKeys);
+        }
+    }, [myProjects]);
 
     const handleChange = (
         pagination: TablePaginationConfig,
         filters: Record<string, FilterValue | null>,
-        sorter: SorterResult<DataType> | SorterResult<DataType>[]
+        sorter: SorterResult<Project> | SorterResult<Project>[]
     ) => {
-        setFilteredInfo(filters);
         setSortedInfo(Array.isArray(sorter) ? sorter[0] : sorter);
     };
 
-    const clearFilters = () => {
-        setFilteredInfo({});
+    const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchText(e.target.value);
     };
 
     const clearAll = () => {
-        setFilteredInfo({});
         setSortedInfo({});
     };
 
-    const setStatusSort = () => {
-        setSortedInfo({
-            order: 'descend',
-            columnKey: 'status',
-        });
-    };
-
-    const rowSelection: TableRowSelection<DataType> = {
-        selectedRowKeys,
-        onChange: setSelectedRowKeys,
-    };
-
-    const columns: ColumnsType<DataType> = [
+    const columns: ColumnsType<Project> = [
         {
             title: 'Name',
             dataIndex: 'name',
             key: 'name',
-            filters: [
-                { text: 'Joe', value: 'Joe' },
-                { text: 'Jim', value: 'Jim' },
-            ],
-            onFilter: (value, record) => typeof value === 'string' && record.name.includes(value),
-            sorter: (a, b) => a.name.length - b.name.length,
+            sorter: (a, b) => a.name.localeCompare(b.name),
             sortOrder: sortedInfo.columnKey === 'name' ? sortedInfo.order : undefined,
             ellipsis: true,
         },
         {
-            title: 'Zuständigkeit',
-            dataIndex: 'responsible',
-            key: 'responsible',
-            filters: [
-                { text: 'John', value: 'John' },
-                { text: 'Jane', value: 'Jane' },
-            ],
-            onFilter: (value, record) => typeof value === 'string' && record.responsible.includes(value),
-            sorter: (a, b) => a.responsible.length - b.responsible.length,
-            sortOrder: sortedInfo.columnKey === 'responsible' ? sortedInfo.order : undefined,
+            title: 'Archiviert',
+            dataIndex: 'isArchived',
+            key: 'isArchived',
+            render: isArchived => (
+                isArchived ? <Tag color="green">Ja</Tag> : <Tag color="volcano">Nein</Tag>
+            ),
+            sorter: (a, b) => Number(a.isArchived) - Number(b.isArchived),
+            sortOrder: sortedInfo.columnKey === 'isArchived' ? sortedInfo.order : undefined,
             ellipsis: true,
         },
         {
-            title: 'Status',
-            dataIndex: 'status',
-            key: 'status',
-            filters: [
-                { text: 'Active', value: 'Active' },
-                { text: 'Inactive', value: 'Inactive' },
-            ],
-            onFilter: (value, record) => typeof value === 'string' && record.status.includes(value),
-            sorter: (a, b) => a.status.length - b.status.length,
-            sortOrder: sortedInfo.columnKey === 'status' ? sortedInfo.order : undefined,
+            title: 'Zuletzt geändert',
+            dataIndex: 'lastUpdated',
+            key: 'lastUpdated',
+            sorter: (a, b) => new Date(a.lastUpdated).getTime() - new Date(b.lastUpdated).getTime(),
+            sortOrder: sortedInfo.columnKey === 'lastUpdated' ? sortedInfo.order : undefined,
             ellipsis: true,
         },
         {
-            title: 'Fälligkeit',
-            dataIndex: 'due_date',
-            key: 'due_date',
-            sorter: (a, b) => a.due_date.localeCompare(b.due_date),
-            sortOrder: sortedInfo.columnKey === 'due_date' ? sortedInfo.order : undefined,
+            title: 'Anzahl Tickets',
+            dataIndex: 'tickets',
+            key: 'tickets',
+            render: tickets => tickets?.length ?? 0,
+            sorter: (a, b) => (a.tickets?.length ?? 0) - (b.tickets?.length ?? 0),
+            sortOrder: sortedInfo.columnKey === 'tickets' ? sortedInfo.order : undefined,
+            ellipsis: true,
         },
     ];
+
+    const rowSelection: TableRowSelection<Project> = {
+        selectedRowKeys,
+        getCheckboxProps: record => ({
+            disabled: selectedRowKeys.includes(record.id), // Disable checkbox for selected rows
+        }),
+        onChange: setSelectedRowKeys,
+    };
+
+    const filteredProjects = projects && projects.length > 0
+        ? projects.filter(project => project.name.toLowerCase().includes(searchText.toLowerCase()))
+        : [];
 
     return (
         <>
             <Space style={{ marginBottom: 16 }}>
-                <Button onClick={setStatusSort}>Sort Status</Button>
-                <Button onClick={clearFilters}>Clear Filters</Button>
-                <Button onClick={clearAll}>Clear Filters and Sorters</Button>
-                <Input addonBefore={<SearchOutlined />} placeholder="Projekt"/>
+                <Button onClick={clearAll}>Filter und Sortierung zurücksetzen</Button>
+                <Input
+                    addonBefore={<SearchOutlined />}
+                    placeholder="Projekt"
+                    onChange={handleSearch}
+                    style={{ width: 400 }}
+                />
             </Space>
             <Table
                 rowSelection={rowSelection}
                 columns={columns}
-                dataSource={projects} // Use projects as the data source
-                loading={loading} // Handle loading state
+                dataSource={filteredProjects.map(project => ({ ...project, key: project.id }))}
+                loading={loadingState}
                 onChange={handleChange}
+                pagination={{
+                    defaultPageSize: 100,
+                    pageSizeOptions: ['50', '100', '200'],
+                    showSizeChanger: true,
+                }}
             />
         </>
     );

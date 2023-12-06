@@ -2,11 +2,18 @@
 import {createAsyncThunk, createSlice} from '@reduxjs/toolkit';
 import apiService from '../../api/apiService';
 import {Ticket} from './types';
+import {store} from "../../store/store";
+
+const state = store.getState();
+const accessToken = state.auth.accessToken;
 
 export const fetchTickets = createAsyncThunk(
+
     'projects/fetchProjects',
     async () => {
-        return await apiService.get('ticket/TICKET_ID_TODO'); // TODO
+        if (accessToken) {
+            return await apiService.get('ticket/TICKET_ID_TODO', accessToken);
+        }
     }
 );
 

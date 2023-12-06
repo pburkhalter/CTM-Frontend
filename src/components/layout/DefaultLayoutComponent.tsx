@@ -1,7 +1,6 @@
-import React, {useState, useEffect, ReactNode} from 'react';
+import React, {ReactNode} from 'react';
 
-import {Layout, Space, Card, Avatar} from "antd";
-import DefaultFooterComponent from "../footer/DefaultFooterComponent";
+import {Layout, Space} from "antd";
 
 const { Header, Footer, Sider, Content } = Layout;
 
@@ -49,7 +48,6 @@ const DefaultLayoutComponent: React.FC<DefaultLayoutComponentProps> = (props) =>
                         {props.children}
                     </Content>
                 </Layout>
-                <Footer style={footerStyle}><DefaultFooterComponent></DefaultFooterComponent></Footer>
             </Layout>
         </Space>
     );

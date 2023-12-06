@@ -1,16 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { AppDispatch, RootState } from '../../store/store';
-import { loginUser } from '../../features/auth/authThunks';
+import { useSelector } from 'react-redux';
+import { Card, Image} from "antd";
+import { RootState } from '../../store/store';
 import {Credentials} from "../../features/auth/types";
-
 import LoginFormComponent from './LoginFormComponent'
-
-import {Layout, Space, Card, Avatar, Image} from "antd";
-import { UserOutlined } from '@ant-design/icons';
 import DefaultLayoutComponent from "../layout/DefaultLayoutComponent";
-
 
 const cardStyle: React.CSSProperties = {
     display: 'flex',
@@ -34,10 +29,9 @@ const avatarStyle: React.CSSProperties = {
 };
 
 const LoginComponent: React.FC = () => {
-    const dispatch: AppDispatch = useDispatch();
     const navigate = useNavigate();
     const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
-    const [credentials, setCredentials] = useState<Credentials>({ username: '', password: '' });
+    const [credentials, setCredentials] = useState<Credentials>({ email: '', password: '' });
 
     useEffect(() => {
         if (isAuthenticated) {

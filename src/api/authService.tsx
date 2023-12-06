@@ -1,5 +1,6 @@
 import config from '../config';
-import {Credentials, AuthResponse, RefreshToken} from '../features/auth/types'
+import {Credentials} from '../features/auth/types'
+import {stat} from "fs";
 
 async function fetchWithAuth(url: RequestInfo | URL, options: RequestInit | undefined) {
     const response = await fetch(url, options);
@@ -10,23 +11,39 @@ async function fetchWithAuth(url: RequestInfo | URL, options: RequestInit | unde
     return response.json();
 }
 
-const authService = {
+export const authService = {
     login: async (credentials: Credentials) => {
-        return fetchWithAuth(`${config.authUrl}/login`, {
+        const response = await fetchWithAuth(`${config.authUrl}/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(credentials),
         });
+
+        if (response.accessToken && response.refreshToken) {
+            localStorage.setItem('accessToken', response.accessToken);
+            localStorage.setItem('refreshToken', response.refreshToken);
+            localStorage.setItem('id', response.id);
+            localStorage.setItem('email', response.email);
+            localStorage.setItem('fullName', response.fullName);
+            localStorage.setItem('lastUpdate', Date.now().toString())
+        }
+        return response;
     },
-    refreshToken: async (refreshTokenPayload: RefreshToken) => {
-        return fetchWithAuth(`${config.authUrl}/refresh`, {
+    refresh: async () => {
+        const refreshToken = localStorage.getItem('refreshToken');
+        const response = await fetchWithAuth(`${config.authUrl}/refresh`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(refreshTokenPayload),
+            body: JSON.stringify({refreshToken: refreshToken}),
         });
-    },
+
+        if (response.accessToken && response.refreshToken) {
+            localStorage.setItem('refreshToken', response.refreshToken);
+            localStorage.setItem('accessToken', response.accessToken);
+            localStorage.setItem('lastUpdate', Date.now().toString())
+        }
+        return response;
+    }
 
     // Implement logout logic as needed
 };
-
-export default authService;

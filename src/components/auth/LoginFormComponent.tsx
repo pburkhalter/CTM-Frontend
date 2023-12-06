@@ -1,16 +1,34 @@
 import React from 'react';
-import { Form, Input, Button, Checkbox } from 'antd';
+import {Form, Input, Button, Checkbox, Divider} from 'antd';
 import { useDispatch } from 'react-redux';
-import { loginUser } from '../../features/auth/authThunks';
 import { Credentials } from "../../features/auth/types";
 import { AppDispatch } from '../../store/store'; // Import AppDispatch
+import { authService } from '../../api/authService'
+import {useNavigate} from "react-router-dom";
+import {loginSuccess} from "../../features/auth/authSlice";
+import { Space, Typography } from 'antd';
 
+const { Title, Paragraph, Text, Link } = Typography;
 const LoginFormComponent: React.FC = () => {
-    const dispatch: AppDispatch = useDispatch();
+    const dispatch = useDispatch<AppDispatch>();
+    const navigate = useNavigate();
 
-    const onFinish = (values: Credentials) => {
-        console.log('Success:', values);
-        dispatch(loginUser(values));
+    const onFinish = async (values: Credentials) => {
+        try {
+            const response = await authService.login(values);
+            if (response.accessToken) {
+                navigate('/tickets');
+                dispatch(loginSuccess({
+                    isAuthenticated: true,
+                }));
+            } else {
+                console.error('Login failed:', response);
+                // Handle login failure here
+            }
+        } catch (error) {
+            console.error('Error during login:', error);
+            // Handle errors like network issues here
+        }
     };
 
     const onFinishFailed = (errorInfo: any) => {
@@ -33,21 +51,17 @@ const LoginFormComponent: React.FC = () => {
             style={formStyle}
         >
             <Form.Item
-                name="username"
-                rules={[{ required: true, message: 'Please input your username!' }]}
+                name="email"
+                rules={[{ required: true, message: 'Bitte gib deine Mail-Adresse ein' }]}
             >
-                <Input placeholder="Benutzer" />
+                <Input placeholder="Email-Adresse" />
             </Form.Item>
 
             <Form.Item
                 name="password"
-                rules={[{ required: true, message: 'Please input your password!' }]}
+                rules={[{ required: true, message: 'Du hast dein Passwort vergessen...' }]}
             >
                 <Input.Password placeholder="Passwort" />
-            </Form.Item>
-
-            <Form.Item name="remember" valuePropName="checked" wrapperCol={{ offset: 4, span: 16 }}>
-                <Checkbox>Remember me</Checkbox>
             </Form.Item>
 
             <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
@@ -55,6 +69,10 @@ const LoginFormComponent: React.FC = () => {
                     Log in
                 </Button>
             </Form.Item>
+            <Divider></Divider>
+            <Text mark>Bitte verwende deine Mailadresse</Text>
+            <Text mark>und unser Standardpasswort</Text>
+
         </Form>
     );
 };

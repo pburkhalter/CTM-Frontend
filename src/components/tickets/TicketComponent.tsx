@@ -1,16 +1,17 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import {Button, Card, Divider} from "antd";
-import {AppDispatch, RootState} from '../../store/store';
+import { Button, Card, Divider, Switch } from "antd";
+import { AppDispatch, RootState } from '../../store/store';
 import TicketListComponent from './TicketListComponent';
-import {fetchAllProjects, fetchMyProjects} from "../../features/projects/projectSlice";
+import { fetchAllProjects, fetchMyProjects } from "../../features/projects/projectSlice";
 import AuthenticatedLayoutComponent from "../layout/AuthenticatedLayoutComponent";
-import {ReloadOutlined} from "@ant-design/icons";
+import { ReloadOutlined } from "@ant-design/icons";
 import TicketFullSearchComponent from "./TicketFullSearchComponent";
 
 const TicketComponent: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
     const { myProjects, loading } = useSelector((state: RootState) => state.projects);
+    const [showOnlyProjectsWithTickets, setShowOnlyProjectsWithTickets] = useState(false);
 
     useEffect(() => {
         dispatch(fetchMyProjects());
@@ -20,27 +21,40 @@ const TicketComponent: React.FC = () => {
         dispatch(fetchMyProjects());
     };
 
-    const projectsToDisplay = myProjects || [];
+    const handleSwitchChange = (checked: boolean) => {
+        setShowOnlyProjectsWithTickets(checked);
+    };
 
-    // Filter out projects with no tickets
-    const projectsWithTickets = projectsToDisplay.filter(project => project.tickets && project.tickets.length > 0);
+    const projectsToDisplay = showOnlyProjectsWithTickets
+        ? myProjects?.filter(project => project.tickets && project.tickets.length > 0)
+        : myProjects || [];
 
     // Extract tickets from each project and flatten them into a single array
-    const allTickets = projectsWithTickets.map(project => project.tickets).flat();
+    const allTickets = projectsToDisplay.map(project => project.tickets).flat();
 
     return (
         <AuthenticatedLayoutComponent>
-
             <Card
                 title="Projektübergreifende Suche"
-                extra={<Button onClick={handleReloadProjects} icon={<ReloadOutlined />} type="default" />}
+                extra={
+                        <Button onClick={handleReloadProjects} icon={<ReloadOutlined />} type="default" />
+                }
             >
                 <TicketFullSearchComponent tickets={allTickets || []}/>
             </Card>
 
-            <Divider></Divider>
+            <Divider />
 
-            {projectsWithTickets.map(project => (
+            {/* Wrap Switch in a div for better styling */}
+            <div style={{ padding: '0 24px', textAlign: 'left' }}> {/* Adjust styling as needed */}
+                <span style={{ marginRight: 10 }}>Nur Projekte mit Tickets anzeigen</span>
+                <Switch
+                    checked={showOnlyProjectsWithTickets}
+                    onChange={handleSwitchChange}
+                />
+            </div>
+
+            {projectsToDisplay.map(project => (
                 <Card
                     key={project.id}
                     title={project.name}

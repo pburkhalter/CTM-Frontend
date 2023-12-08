@@ -14,3 +14,13 @@ export interface Ticket {
     };
 }
 
+export interface NewTicket {
+    name: string;
+    status: string; // Assuming status is a simple string for the new ticket
+    deadline: string;
+    responsible: string; // Assuming responsible is a simple string for the new ticket
+}
+
+export interface TicketsListProps {
+    tickets: Ticket[];
+}

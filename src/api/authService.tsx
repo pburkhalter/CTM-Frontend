@@ -1,6 +1,5 @@
 import config from '../config';
 import {Credentials} from '../features/auth/types'
-import {stat} from "fs";
 
 async function fetchWithAuth(url: RequestInfo | URL, options: RequestInit | undefined) {
     const response = await fetch(url, options);
@@ -43,7 +42,10 @@ export const authService = {
             localStorage.setItem('lastUpdate', Date.now().toString())
         }
         return response;
-    }
+    },
 
-    // Implement logout logic as needed
+    logout: async () => {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+    }
 };

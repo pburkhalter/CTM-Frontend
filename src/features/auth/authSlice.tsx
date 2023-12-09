@@ -5,9 +5,9 @@ const initialState: AuthState = {
     isAuthenticated: false,
     accessToken: null,
     refreshToken: null,
-    fullName: null,
-    email: null,
-    id: null
+    fullName: localStorage.getItem('fullName'),
+    email: localStorage.getItem('email'),
+    id: localStorage.getItem('id')
 };
 
 const authSlice = createSlice({

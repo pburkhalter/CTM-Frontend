@@ -8,7 +8,6 @@ export const fetchSettings = createAsyncThunk(
         const accessToken = localStorage.getItem("accessToken");
         if (accessToken) {
             const response = await apiService.get('service/stats', accessToken);
-            console.log(response); // Log the response to see its structure
             return response;
         }
     }

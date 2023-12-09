@@ -22,10 +22,21 @@ export const fetchMyTeammates = createAsyncThunk(
     }
 );
 
+export const fetchExternalUsers = createAsyncThunk(
+    'users/externalUsers',
+    async (_, thunkAPI) => {
+        const accessToken = localStorage.getItem("accessToken")
+        if(accessToken){
+            return await apiService.get('users/external', accessToken);
+        }
+    }
+);
+
 const userSlice = createSlice({
     name: 'users',
     initialState: {
         myTeammates: [] as User[],
+        externalUsers: [] as User [],
         allUsers: [] as User[],
         loading: false,
     },
@@ -50,6 +61,16 @@ const userSlice = createSlice({
                 state.loading = false;
             })
             .addCase(fetchMyTeammates.rejected, (state) => {
+                state.loading = false;
+            })
+            .addCase(fetchExternalUsers.pending, (state) => {
+            state.loading = true;
+            })
+            .addCase(fetchExternalUsers.fulfilled, (state, action) => {
+                state.externalUsers = action.payload;
+                state.loading = false;
+            })
+            .addCase(fetchExternalUsers.rejected, (state) => {
                 state.loading = false;
             });
     }

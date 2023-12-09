@@ -11,7 +11,6 @@ const DefaultFooterComponent: React.FC = () => {
 
     useEffect(() => {
         dispatch(fetchSettings());
-        console.log(version_status)
     }, [dispatch]);
 
     return (

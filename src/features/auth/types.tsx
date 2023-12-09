@@ -3,17 +3,6 @@ export interface Credentials {
     password: string;
 }
 
-export interface AuthResponse {
-    ok: boolean;
-    data?: AuthData;
-    error?: string;
-}
-
-export interface AuthData {
-    accessToken: string;
-    refreshToken: string;
-}
-
 export interface AuthState {
     isAuthenticated: boolean;
     accessToken: string | null;

@@ -1,40 +1,40 @@
-import React, {useState, useEffect, useCallback, useMemo} from 'react';
+import React, {useState, useEffect, useCallback, useMemo, Dispatch} from 'react';
 import {Button, Input, Select, Space, Table, DatePicker, Flex, Pagination} from 'antd';
 import {CloseOutlined, EditOutlined, PlusOutlined, SaveOutlined, SearchOutlined} from '@ant-design/icons';
-import moment from 'moment';
 import { ColumnsType } from 'antd/es/table/interface';
-import {NewTicket, Ticket, TicketsListProps} from "../../features/tickets/types";
+import {NewTicketWithAPI, Ticket, TicketsListProps} from "../../features/tickets/types";
 import AutoCompleteDropdownComponent from "../custom/AutoCompleteDropdownComponent";
 import {User} from "../../features/users/types";
 import apiService from "../../api/apiService";
 import dayjs from 'dayjs';
-
+import {createTicket} from "../../features/tickets/ticketSlice";
+import {useDispatch} from "react-redux";
+import {AppDispatch} from "../../store/store";
+import moment from "moment";
 const { Option } = Select;
 
 const statusOptions = ["Offen", "Geschlossen", "Freigemeldet", "In Bearbeitung"];
 const defaultStatusOptions = ["Offen", "Freigemeldet", "In Bearbeitung"];
 
-const TicketListComponent: React.FC<TicketsListProps> = ({ tickets }) => {
+const TicketListComponent: React.FC<TicketsListProps> = ({ project: project }) => {
     const [data, setData] = useState<Ticket[]>([]);
-    const [newTicket, setNewTicket] = useState<NewTicket>({ name: '', status: 'Offen', deadline: '', responsible: '' });
     const [addingTicket, setAddingTicket] = useState(false);
     const [searchText, setSearchText] = useState('');
     const [selectedStatuses, setSelectedStatuses] = useState<string[]>(defaultStatusOptions);
-    const currentUser = localStorage.getItem("fullName")
-    const currentUserId = localStorage.getItem("id")
     const [editingTicketId, setEditingTicketId] = useState<string | null>(null);
-
-    // Pagination state
     const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
 
-    // Function to handle page change
-    const handlePageChange = (page: any, pageSize: any) => {
-        setPagination({ current: page, pageSize });
-        // Additional logic if needed to fetch data, adjust displayed data etc.
+    const dispatch = useDispatch<AppDispatch>();
+    const convertToDateObject = (dateString: moment.MomentInput) => {
+        const date = moment(dateString, 'DD.MM.YYYY');
+        if (!date.isValid()) {
+            throw new Error('Invalid date');
+        }
+        return date.toDate();
     };
 
     const filterTickets = useCallback(() => {
-        let filteredData = tickets.filter(ticket => {
+        let filteredData = project.tickets.filter(ticket => {
             const matchesSearchText = searchText
                 ? ticket.name.toLowerCase().includes(searchText.toLowerCase())
                 || (ticket.responsible?.fullName.toLowerCase().includes(searchText.toLowerCase()))
@@ -53,12 +53,17 @@ const TicketListComponent: React.FC<TicketsListProps> = ({ tickets }) => {
         });
 
         setData(filteredData);
-    }, [tickets, searchText, selectedStatuses]);
+    }, [project.tickets, searchText, selectedStatuses]);
 
 
     useEffect(() => {
         filterTickets();
     }, [searchText, selectedStatuses]);
+
+    const handlePageChange = (page: any, pageSize: any) => {
+        setPagination({ current: page, pageSize });
+        // Additional logic if needed to fetch data, adjust displayed data etc.
+    };
 
     const handleSearchChange = (e: { target: { value: React.SetStateAction<string>; }; }) => setSearchText(e.target.value);
 
@@ -71,43 +76,120 @@ const TicketListComponent: React.FC<TicketsListProps> = ({ tickets }) => {
         setSelectedStatuses(defaultStatusOptions);
     };
 
-    const addNewTicketRow = () => {
-        setAddingTicket(true);
-        setData(currentData => [...currentData, {
-            id: 'new',
-            name: newTicket.name,
-            status: { name: newTicket.status }, // Assuming the status structure
-            deadline: newTicket.deadline ? newTicket.deadline : null,
-            responsible: {
-                email: null, // Assuming null as default for a new ticket
-                fullName: newTicket.responsible,
-                id: 'responsible-id' // Provide a temporary or default id
-            },
-            // Set default values for the other properties
-            category: 'default-category', // Default value or based on some logic
-            createdAt: new Date().toISOString(), // Current date-time
-            description: null, // Assuming null as default for a new ticket
-            hasComments: false // Assuming false as default for a new ticket
-        }]);
+    const findStatusIdByName = (name: string | null) => {
+        const status = project.statuses.find(status => status.name === name);
+        return status ? status.id : null;
     };
 
-    const removeNewTicketRow = () => {
-        setData(currentData => currentData.filter(ticket => ticket.id !== 'new'));
+    const findResponsibleIdByName = (name: string) => {
+        const member = project.members.find(member => member.fullName === name);
+        return member ? member.id : null;
+    };
+
+
+    const addNewTicketRow = () => {
+        const newTicketRow: Ticket = {
+            id: `new-${Date.now()}`,
+            name: '',
+            status: {
+                name: 'Offen',
+                id: ''
+            },
+            deadline: '',
+            responsible: {
+                email: null,
+                fullName: '',
+                id: ''
+            },
+            category: null,
+            createdAt: new Date().toISOString(),
+            description: null,
+            hasComments: false
+        };
+        setData(currentData => [...currentData, newTicketRow]);
+    };
+
+    const removeNewTicket = () => {
+        setData(currentData => currentData.filter(ticket => !ticket.id.startsWith('new')));
     };
 
     const saveNewTicket = async () => {
         try {
-            // API call to save the new ticket
-            const response = await apiService.post('tickets/', newTicket, 'accessToken'); // Replace with your actual API call
-            if (response.success) {
-                setData(currentData => currentData.map(ticket =>
-                    ticket.id === 'new' ? { ...response.ticket } : ticket
-                ));
+            // Ensure that there is a new ticket to save
+            const newTicketRow = data.find(ticket => ticket.id.startsWith('new-'));
+            if (!newTicketRow) {
+                console.error("No new ticket row found");
+                return;
             }
-            setAddingTicket(false);
+
+            // Check for status and responsible existence
+            if (!newTicketRow.status?.name || !newTicketRow.responsible?.fullName) {
+                console.error("Status or responsible information is missing");
+                return;
+            }
+
+            const statusId = findStatusIdByName(newTicketRow.status.name);
+            const responsibleId = findResponsibleIdByName(newTicketRow.responsible.fullName);
+
+            if (!statusId || !responsibleId) {
+                console.error("Status or responsible ID not found");
+                return;
+            }
+
+            const ticketData = {
+                ...newTicketRow,
+                projectId: project.id,
+                statusId: statusId,
+                responsibleId: responsibleId,
+                deadline: newTicketRow.deadline ? convertToDateObject(newTicketRow.deadline).toISOString() : ''
+            };
+
+            console.log("Ticket Data to be saved:", ticketData);
+
+
+            const actionResult = await dispatch(createTicket(ticketData as NewTicketWithAPI));
+
+            if (createTicket.fulfilled.match(actionResult)) {
+                // Call the API to fetch the updated list of tickets
+                const accessToken = localStorage.getItem("accessToken")
+                if (accessToken){
+                    const updatedTickets = await apiService.get(`projects/${project.id}`, accessToken);
+                    console.log(updatedTickets)
+                    if (updatedTickets) {
+                        // Update the data state with the new list of tickets
+                        setData(updatedTickets.tickets);
+                    } else {
+                        console.error("Failed to fetch updated tickets list");
+                    }
+                    setAddingTicket(false);
+                }
+
+            } else {
+                console.error("Ticket creation failed", actionResult.payload);
+            }
         } catch (error) {
             console.error("Error saving ticket:", error);
-            // Handle error (e.g., show an error message)
+        }
+    };
+
+    // Function to save the edited ticket
+    const saveEdit = async (id: string) => {
+        const ticketToSave = data.find(ticket => ticket.id === id);
+        if (ticketToSave) {
+            try {
+                // API call to update the ticket
+                const response = await apiService.put(`tickets/${id}`, ticketToSave, 'accessToken');
+                if (response.success) {
+                    // Update the local state to reflect the edited ticket
+                    setData(currentData => currentData.map(ticket =>
+                        ticket.id === id ? { ...ticket, ...response.ticket } : ticket
+                    ));
+                }
+                setEditingTicketId(null);
+            } catch (error) {
+                console.error("Error updating ticket:", error);
+                // Handle error
+            }
         }
     };
 
@@ -116,7 +198,7 @@ const TicketListComponent: React.FC<TicketsListProps> = ({ tickets }) => {
             currentData.map(ticket => {
                 if (ticket.id === id) {
                     if (field === 'status' && typeof value === 'string') {
-                        return { ...ticket, status: { name: value } };
+                        return { ...ticket, status: { name: value, id: '' } };
                     } else if (field === 'responsible' && typeof value !== 'string') {
                         return { ...ticket, responsible: value }; // Ensure value is a User object
                     } else if (typeof value === 'string') {
@@ -130,34 +212,15 @@ const TicketListComponent: React.FC<TicketsListProps> = ({ tickets }) => {
         );
     };
 
-
-    const users: User[] = [
-        { email: "user1@example.com", fullName: "User One", id: "1" },
-        { email: "user2@example.com", fullName: "User Two", id: "2" },
-        // ... more users
-    ];
-
-    const handleSelect = (value: string, user: User) => {
-        console.log('Selected:', value, user);
-        // Additional logic for when a user is selected
-    };
-
-    const saveEdit = (id: string) => {
-        // Save logic here (API call)
-        // After saving:
-        setEditingTicketId(null);
-        // Update state with new ticket data
-    };
-
-
-
     const columns: ColumnsType<Ticket> = [
         {
             title: 'Name',
             dataIndex: 'name',
             key: 'name',
             render: (text, record) => {
-                if (record.id === 'new' || record.id === editingTicketId) {
+                if (!record) return null;
+
+                if (record.id && (record.id.startsWith('new') || record.id === editingTicketId)) {
                     return <Input defaultValue={text} onChange={(e) => handleEditChange(e.target.value, 'name', record.id)} />;
                 }
                 return text;
@@ -168,7 +231,9 @@ const TicketListComponent: React.FC<TicketsListProps> = ({ tickets }) => {
             dataIndex: 'status',
             key: 'status',
             render: (status, record) => {
-                if (record.id === 'new' || record.id === editingTicketId) {
+                if (!record) return null;
+
+                if (record.id && (record.id.startsWith('new') || record.id === editingTicketId)) {
                     return (
                         <Select
                             defaultValue={status.name}
@@ -189,27 +254,31 @@ const TicketListComponent: React.FC<TicketsListProps> = ({ tickets }) => {
             dataIndex: 'deadline',
             key: 'deadline',
             render: (text, record) => {
-                if (record.id === 'new' || record.id === editingTicketId) {
+                if (!record) return null;
+
+                if (record.id && (record.id.startsWith('new') || record.id === editingTicketId)) {
                     return (
                         <DatePicker
-                            defaultValue={text ? dayjs(text, "DD-MM-YYYY") : undefined} // Changed from null to undefined
+                            defaultValue={text ? dayjs(text, "DD-MM-YYYY") : undefined}
                             format="DD.MM.YYYY"
                             onChange={(date, dateString) => handleEditChange(dateString, 'deadline', record.id)}
                         />
                     );
                 }
-                return text ? dayjs(text).format('DD-MM-YYYY') : '';
+                return text ? dayjs(text).format('DD.MM.YYYY') : '';
             },
         },
         {
-            title: 'Responsible',
+            title: 'Verantwortlich',
             dataIndex: 'responsible',
             key: 'responsible',
             render: (_, record) => {
-                if (record.id === 'new' || record.id === editingTicketId) {
+                if (!record) return null;
+
+                if (record.id && (record.id.startsWith('new') || record.id === editingTicketId)) {
                     return (
                         <AutoCompleteDropdownComponent
-                            dataSource={users}
+                            dataSource={project.members}
                             defaultValue={record.responsible ? record.responsible.fullName : ''}
                             placeholder="Select a user"
                             onChange={(value, user) => handleEditChange(user, 'responsible', record.id)}
@@ -220,25 +289,27 @@ const TicketListComponent: React.FC<TicketsListProps> = ({ tickets }) => {
             },
         },
         {
-            title: 'Actions',
+            title: 'Aktionen',
             key: 'actions',
             render: (_, record) => {
-                if (record.id === 'new') {
+                if (!record) return null;
+
+                if (record.id && record.id.startsWith('new')) {
                     return (
                         <Space>
                             <Button
                                 icon={<SaveOutlined />}
-                                onClick={() => saveNewTicket()} // Save new ticket logic
+                                onClick={() => saveNewTicket()}
                                 type="link"
                             />
                             <Button
                                 icon={<CloseOutlined />}
-                                onClick={() => removeNewTicketRow()} // Remove new ticket logic
+                                onClick={() => removeNewTicket()}
                                 type="link"
                             />
                         </Space>
                     );
-                } else if (record.id === editingTicketId) {
+                } else if (record.id && record.id === editingTicketId) {
                     return (
                         <Space>
                             <Button
@@ -280,7 +351,7 @@ const TicketListComponent: React.FC<TicketsListProps> = ({ tickets }) => {
                         placeholder="Suche nach Ticket oder Verantwortlichem"
                         onChange={handleSearchChange}
                         value={searchText}
-                        width={300}
+                        style={{ width: 300 }} // Set the width here
                     />
                     <Select
                         mode="multiple"
@@ -302,7 +373,8 @@ const TicketListComponent: React.FC<TicketsListProps> = ({ tickets }) => {
             <Table
                 columns={columns}
                 dataSource={data}
-                pagination={false} // Disable the table's own pagination
+                pagination={false}
+                rowKey="id"
 
             />
             <Flex justify={"center"}>
@@ -318,7 +390,7 @@ const TicketListComponent: React.FC<TicketsListProps> = ({ tickets }) => {
                 current={pagination.current}
                 pageSize={pagination.pageSize}
                 onChange={handlePageChange}
-                total={data.length} // Adjust based on total data
+                total={data.length}
             />
 
 

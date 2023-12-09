@@ -1,6 +1,7 @@
+import {Project} from "../projects/types";
+
 export interface Ticket {
-    category: string;
-    status: any | null;
+    category: string | null;
     createdAt: string; // ISO date string
     deadline: string | null; // ISO date string or null
     description: string | null;
@@ -12,15 +13,26 @@ export interface Ticket {
         fullName: string;
         id: string;
     };
+    status: {
+        name: string;
+        id: string;
+    };
 }
 
-export interface NewTicket {
-    name: string;
-    status: string; // Assuming status is a simple string for the new ticket
-    deadline: string;
-    responsible: string; // Assuming responsible is a simple string for the new ticket
+export interface NewTicketWithAPI {
+    projectId: string,
+    responsibleId: string,
+    name: string,
+    description: string,
+    deadline: string,
+    statusId: string
+}
+
+export interface TicketStatusUpdate {
+    id: string,
+    statusId: string
 }
 
 export interface TicketsListProps {
-    tickets: Ticket[];
+    project: Project;
 }

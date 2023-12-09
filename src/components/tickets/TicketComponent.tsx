@@ -61,7 +61,7 @@ const TicketComponent: React.FC = () => {
                     extra={<Button onClick={handleReloadProjects} icon={<ReloadOutlined />} type="default" />}
                 >
                     {/* Pass only the tickets for this specific project */}
-                    <TicketListComponent tickets={project.tickets || []}/>
+                    <TicketListComponent project={project || []}/>
                 </Card>
             ))}
         </AuthenticatedLayoutComponent>

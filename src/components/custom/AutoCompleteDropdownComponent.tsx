@@ -9,7 +9,7 @@ interface OptionType {
 
 interface AutoCompleteDropdownProps {
     dataSource: User[];
-    defaultValue?: string; // Add this line
+    defaultValue?: string;
     placeholder?: string;
     onChange: (value: string, user: User) => void;
 }
@@ -19,7 +19,8 @@ const AutoCompleteDropdownComponent: React.FC<AutoCompleteDropdownProps> = ({
                                                                                 defaultValue,
                                                                                 placeholder,
                                                                                 onChange
-                                                                            }) => {    const [options, setOptions] = useState<OptionType[]>([]);
+                                                                            }) => {
+    const [options, setOptions] = useState<OptionType[]>([]);
     const [displayValue, setDisplayValue] = useState("");
 
     const handleSearch = (value: string) => {
@@ -31,23 +32,26 @@ const AutoCompleteDropdownComponent: React.FC<AutoCompleteDropdownProps> = ({
             }));
 
         setOptions(filteredOptions);
-        setDisplayValue(value); // Allow users to type freely
+        setDisplayValue(value);
     };
 
     const handleSelect = (value: string, option: any) => {
         const selectedUser = dataSource.find(user => user.id === value);
         if (selectedUser) {
-            setDisplayValue(selectedUser.fullName); // Update the display value to the user's full name
+            setDisplayValue(selectedUser.fullName);
             onChange(value, selectedUser);
         }
     };
 
     const handleBlur = () => {
-        // Check if the displayed value matches any of the options' labels
         const isMatch = options.some(option => option.label === displayValue);
         if (!isMatch) {
-            setDisplayValue(""); // Clear the input if no match is found
+            setDisplayValue("");
         }
+    };
+
+    const handleFocus = () => {
+        handleSearch(""); // Show all options when the component gains focus
     };
 
     return (
@@ -56,9 +60,10 @@ const AutoCompleteDropdownComponent: React.FC<AutoCompleteDropdownProps> = ({
             value={displayValue}
             options={options}
             onSearch={handleSearch}
-            placeholder={placeholder || 'Type to search'}
             onSelect={handleSelect}
             onBlur={handleBlur}
+            onFocus={handleFocus} // Add this line
+            placeholder={placeholder || 'Type to search'}
             filterOption={(inputValue, option) =>
                 option ? option.label.toLowerCase().includes(inputValue.toLowerCase()) : false
             }

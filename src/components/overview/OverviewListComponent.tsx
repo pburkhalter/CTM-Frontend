@@ -14,12 +14,11 @@ interface TicketsListProps {
 const OverviewListComponent: React.FC<TicketsListProps> = ({ tickets }) => {
     const [searchText, setSearchText] = useState<string>('');
     const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+    const [showOnlyMyTickets, setShowOnlyMyTickets] = useState<boolean>(false);
 
     useEffect(() => {
-        // Extract unique status names, excluding 'Geschlossen'
         const uniqueStatuses = Array.from(new Set(tickets.map(ticket => ticket.status?.name)))
             .filter(name => name && name !== 'Geschlossen');
-
         setSelectedStatuses(uniqueStatuses);
     }, [tickets]);
 
@@ -33,24 +32,40 @@ const OverviewListComponent: React.FC<TicketsListProps> = ({ tickets }) => {
         setSelectedStatuses(selected);
     };
 
+    const handleShowMyTickets = () => {
+        const currentUserFullName = localStorage.getItem('fullName');
+        if (showOnlyMyTickets) {
+            setSearchText('');
+        } else {
+            setSearchText(currentUserFullName || '');
+        }
+        setShowOnlyMyTickets(prev => !prev);
+    };
+
     const clearAll = () => {
         setSearchText('');
         setSelectedStatuses([]);
+        setShowOnlyMyTickets(false);
     };
 
-    // Prepare unique status options for the Select component
     const statusOptions = Array.from(new Set(tickets.map(ticket => ticket.status?.name).filter(Boolean)));
 
-    const statusFilters = statusOptions.map(status => ({
-        text: status,
-        value: status,
-    }));
+    const filteredTickets = tickets.filter(ticket => {
+        const matchesStatus = selectedStatuses.length === 0 || selectedStatuses.includes(ticket.status?.name);
+        const lowerCaseSearchText = searchText.toLowerCase();
 
-    const filteredTickets = tickets.filter(ticket =>
-        (selectedStatuses.length === 0 || selectedStatuses.includes(ticket.status?.name)) &&
-        (ticket.name.toLowerCase().includes(searchText.toLowerCase()) ||
-            (ticket.name && ticket.name.toLowerCase().includes(searchText.toLowerCase())))
-    );
+        // Safely access project name with a fallback to an empty string
+        const projectName = ticket.project?.name?.toLowerCase() || '';
+
+        const matchesSearchText = ticket.name.toLowerCase().includes(lowerCaseSearchText) ||
+            ticket.responsible?.fullName.toLowerCase().includes(lowerCaseSearchText) ||
+            projectName.includes(lowerCaseSearchText);
+
+        const isMyTicket = ticket.responsible?.fullName === localStorage.getItem('fullName');
+
+        return matchesStatus && matchesSearchText && (!showOnlyMyTickets || isMyTicket);
+    });
+
 
     const columns: ColumnsType<Ticket> = [
         {
@@ -63,51 +78,49 @@ const OverviewListComponent: React.FC<TicketsListProps> = ({ tickets }) => {
             title: 'Status',
             dataIndex: 'status',
             key: 'status',
-            filters: statusFilters,
+            filters: statusOptions.map(status => ({ text: status, value: status })),
             onFilter: (value, record) => record.status?.name === value,
             render: status => status ? status.name : 'N/A',
-            sorter: (a, b) => {
-                const statusA = a.status ? a.status.name : '';
-                const statusB = b.status ? b.status.name : '';
-                return statusA.localeCompare(statusB);
-            },
+            sorter: (a, b) => a.status?.name.localeCompare(b.status?.name),
         },
         {
             title: 'Deadline',
             dataIndex: 'deadline',
             key: 'deadline',
+            defaultSortOrder: 'ascend',
+            sorter: (a, b) => moment(a.deadline).unix() - moment(b.deadline).unix(),
             render: deadline => formatDateTime(deadline),
-            sorter: (a, b) => {
-                if(a.deadline === 'N/A' || a.deadline === null) return 1;
-                if(b.deadline === 'N/A' || b.deadline === null) return -1;
-                return moment(a.deadline).unix() - moment(b.deadline).unix();
-            },
         },
         {
             title: 'Verantwortlich',
             dataIndex: 'responsible',
             key: 'responsible',
-            render: (_, { responsible }) => responsible ? responsible.fullName : 'N/A',
-            sorter: (a, b) => {
-                const nameA = a.responsible ? a.responsible.fullName : '';
-                const nameB = b.responsible ? b.responsible.fullName : '';
-                return nameA.localeCompare(nameB);
-            },
+            render: responsible => responsible ? responsible.fullName : 'N/A',
+            sorter: (a, b) => a.responsible?.fullName.localeCompare(b.responsible?.fullName),
         },
         {
             title: 'Projekt',
-            dataIndex: 'name',
-            key: 'name',
-        },
-    ]
+            dataIndex: 'projectName',
+            key: 'projectName',
+            render: text => text || 'N/A',
+            sorter: (a, b) => {
+                const nameA = a.project?.name ?? '';
+                const nameB = b.project?.name ?? '';
+                return nameA.localeCompare(nameB);
+            },
+        }
+    ];
 
     return (
         <>
             <Space style={{ marginBottom: 16 }}>
                 <Button onClick={clearAll}>Filter und Sortierung zurücksetzen</Button>
+                <Button onClick={handleShowMyTickets}>
+                    {showOnlyMyTickets ? 'Alle Tickets anzeigen' : 'Nur meine Tickets anzeigen'}
+                </Button>
                 <Input
                     addonBefore={<SearchOutlined />}
-                    placeholder="Suche nach Ticket oder Verantwortlichem"
+                    placeholder="Suche nach Ticket, Verantwortlichem oder Projekt"
                     onChange={handleSearch}
                     value={searchText}
                 />
@@ -132,7 +145,7 @@ const OverviewListComponent: React.FC<TicketsListProps> = ({ tickets }) => {
                     showSizeChanger: true,
                 }}
                 locale={{
-                    emptyText: 'Alles erledigt! Keine Tickets für diese Woche.',
+                    emptyText: 'Alles erledigt! Keine Tickets verfügbar.',
                 }}
             />
         </>

@@ -1,19 +1,32 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Button, Card, Divider, Switch } from "antd";
+import { Button, Card, Collapse, Divider, Flex, Switch } from "antd";
 import { AppDispatch, RootState } from '../../store/store';
 import TicketListComponent from './TicketListComponent';
-import { fetchAllProjects, fetchMyProjects } from "../../features/projects/projectSlice";
+import { fetchMyProjects } from "../../features/projects/projectSlice";
 import AuthenticatedLayoutComponent from "../layout/AuthenticatedLayoutComponent";
-import { ReloadOutlined } from "@ant-design/icons";
 import TicketFullSearchComponent from "./TicketFullSearchComponent";
+import { Project } from "../../features/projects/types";
+import { Status } from "../../features/status/types";
 
 const TicketComponent: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
-    const { myProjects, loading } = useSelector((state: RootState) => state.projects);
-    const [showOnlyProjectsWithTickets, setShowOnlyProjectsWithTickets] = useState(false);
+    const { myProjects } = useSelector((state: RootState) => state.projects);
+    const [showNonArchivedProjects, setShowNonArchivedProjects] = useState(true);
+    const [showProjectsWithActiveTickets, setShowProjectsWithActiveTickets] = useState(true);
 
     useEffect(() => {
+        const savedShowNonArchived = localStorage.getItem('showNonArchivedProjects');
+        const savedShowActiveTickets = localStorage.getItem('showProjectsWithActiveTickets');
+
+        if (savedShowNonArchived !== null) {
+            setShowNonArchivedProjects(JSON.parse(savedShowNonArchived));
+        }
+
+        if (savedShowActiveTickets !== null) {
+            setShowProjectsWithActiveTickets(JSON.parse(savedShowActiveTickets));
+        }
+
         dispatch(fetchMyProjects());
     }, [dispatch]);
 
@@ -21,49 +34,87 @@ const TicketComponent: React.FC = () => {
         dispatch(fetchMyProjects());
     };
 
-    const handleSwitchChange = (checked: boolean) => {
-        setShowOnlyProjectsWithTickets(checked);
+    const handleNonArchivedSwitchChange = (checked: boolean) => {
+        localStorage.setItem('showNonArchivedProjects', JSON.stringify(checked));
+        setShowNonArchivedProjects(checked);
     };
 
-    const projectsToDisplay = showOnlyProjectsWithTickets
-        ? myProjects?.filter(project => project.tickets && project.tickets.length > 0)
-        : myProjects || [];
+    const handleActiveTicketsSwitchChange = (checked: boolean) => {
+        localStorage.setItem('showProjectsWithActiveTickets', JSON.stringify(checked));
+        setShowProjectsWithActiveTickets(checked);
+    };
 
-    // Extract tickets from each project and flatten them into a single array
-    const allTickets = projectsToDisplay.map(project => project.tickets).flat();
+    const projectsToDisplay = useMemo(() => myProjects.filter(project => {
+        const isNonArchived = !showNonArchivedProjects || !project.isArchived;
+        const hasActiveTickets = !showProjectsWithActiveTickets || project.tickets.some(ticket =>
+            ['Offen', 'In Bearbeitung', 'Freigemeldet'].includes(ticket.status.name)
+        );
+        return isNonArchived && hasActiveTickets;
+    }), [myProjects, showNonArchivedProjects, showProjectsWithActiveTickets]);
+
+    const allTicketsWithProject = projectsToDisplay.flatMap(project =>
+        project.tickets.map(ticket => ({
+            ...ticket,
+            projectName: project.name
+        }))
+    );
+
+    const formatProjectHeader = (project: Project) => {
+        return (
+            <Flex wrap={'wrap'}>
+                <div style={{ minWidth: '400px' }}>
+                    <span>{project.name}</span>
+                </div>
+                <Flex>
+                    {project.statuses.map((status: Status) => (
+                        <div style={{ minWidth: '150px' }}>
+                            <span key={status.id} style={{ marginRight: '10px', fontWeight: '500' }}>
+                                {status.name}: {status.ticket_count}
+                            </span>
+                        </div>
+
+                    ))}
+                </Flex>
+            </Flex>
+        );
+    };
+
 
     return (
         <AuthenticatedLayoutComponent>
-            <Card
-                title="Projektübergreifende Suche"
-                extra={
-                        <Button onClick={handleReloadProjects} icon={<ReloadOutlined />} type="default" />
-                }
-            >
-                <TicketFullSearchComponent tickets={allTickets || []}/>
+            <Card title="Projektübergreifende Suche">
+                <TicketFullSearchComponent tickets={allTicketsWithProject}/>
             </Card>
 
             <Divider />
 
-            {/* Wrap Switch in a div for better styling */}
-            <div style={{ padding: '0 24px', textAlign: 'left' }}> {/* Adjust styling as needed */}
-                <span style={{ marginRight: 10 }}>Nur Projekte mit Tickets anzeigen</span>
-                <Switch
-                    checked={showOnlyProjectsWithTickets}
-                    onChange={handleSwitchChange}
-                />
-            </div>
+            <Flex gap={20}>
+                <div>
+                    <span style={{ marginRight: 10 }}>Nur nicht archivierte Projekte anzeigen</span>
+                    <Switch
+                        checked={showNonArchivedProjects}
+                        onChange={handleNonArchivedSwitchChange}
+                    />
+                </div>
+                <div>
+                    <span style={{ marginRight: 10 }}>Nur Projekte mit aktiven Tickets anzeigen</span>
+                    <Switch
+                        checked={showProjectsWithActiveTickets}
+                        onChange={handleActiveTicketsSwitchChange}
+                    />
+                </div>
+            </Flex>
 
-            {projectsToDisplay.map(project => (
-                <Card
-                    key={project.id}
-                    title={project.name}
-                    extra={<Button onClick={handleReloadProjects} icon={<ReloadOutlined />} type="default" />}
-                >
-                    {/* Pass only the tickets for this specific project */}
-                    <TicketListComponent project={project || []}/>
-                </Card>
-            ))}
+            <Collapse>
+                {projectsToDisplay.map(project => (
+                    <Collapse.Panel
+                        header={formatProjectHeader(project)}
+                        key={project.id}
+                    >
+                        <TicketListComponent project={project}/>
+                    </Collapse.Panel>
+                ))}
+            </Collapse>
         </AuthenticatedLayoutComponent>
     );
 };

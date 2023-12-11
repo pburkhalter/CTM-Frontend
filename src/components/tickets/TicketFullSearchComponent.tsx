@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button, Input, Space, Table } from 'antd';
+import {Button, Input, Select, Space, Table} from 'antd';
 import type { ColumnsType } from 'antd/es/table/interface';
 import { Ticket } from "../../features/tickets/types";
 import moment from 'moment';
@@ -14,6 +14,7 @@ const TicketFullSearchComponent: React.FC<TicketsListProps> = ({ tickets }) => {
     const [sortedInfo, setSortedInfo] = useState<SorterResult<Ticket>>({});
     const [searchText, setSearchText] = useState('');
     const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
+    const [showOnlyMyTickets, setShowOnlyMyTickets] = useState<boolean>(false);
 
     const formatDateTime = (date: string | null) => date ? moment(date).format('DD.MM.YYYY HH:mm') : 'n/A';
 
@@ -26,7 +27,6 @@ const TicketFullSearchComponent: React.FC<TicketsListProps> = ({ tickets }) => {
         setSearchText('');
     };
 
-    // Prepare unique status options for the Select component
     const statusOptions = Array.from(new Set(tickets.map(ticket => ticket.status?.name).filter(Boolean)));
 
     const statusFilters = statusOptions.map(status => ({
@@ -34,22 +34,29 @@ const TicketFullSearchComponent: React.FC<TicketsListProps> = ({ tickets }) => {
         value: status,
     }));
 
-    const seeMyTickets = () => {
-        const myFullName = localStorage.getItem('fullName');
-        if (myFullName) {
-            setSortedInfo({});
-            setSearchText(myFullName ? myFullName.toLowerCase() : ''); // Ensure searchText is always a string
+    const handleShowMyTickets = () => {
+        const currentUserFullName = localStorage.getItem('fullName');
+        if (showOnlyMyTickets) {
+            setSearchText('');
+        } else {
+            setSearchText(currentUserFullName || '');
         }
+        setShowOnlyMyTickets(prev => !prev);
     };
 
-    const filteredTickets = searchText.length > 0 ? tickets.filter(ticket => {
-        const ticketName = ticket.name ? ticket.name.toLowerCase() : '';
-        const responsibleName = ticket.responsible && ticket.responsible.fullName
-            ? ticket.responsible.fullName.toLowerCase()
-            : '';
+    const filteredTickets = (searchText.trim() || selectedStatuses.length > 0) ? tickets.filter(ticket => {
+        const matchesStatus = selectedStatuses.length === 0 || selectedStatuses.includes(ticket.status?.name);
+        const lowerCaseSearchText = searchText.toLowerCase();
 
-        return ticketName.includes(searchText.toLowerCase()) ||
-            responsibleName.includes(searchText.toLowerCase());
+        const projectName = ticket.project?.name?.toLowerCase() || '';
+
+        const matchesSearchText = ticket.name.toLowerCase().includes(lowerCaseSearchText) ||
+            ticket.responsible?.fullName.toLowerCase().includes(lowerCaseSearchText) ||
+            projectName.includes(lowerCaseSearchText);
+
+        const isMyTicket = ticket.responsible?.fullName === localStorage.getItem('fullName');
+
+        return matchesStatus && (matchesSearchText || searchText.trim() === '') && (!showOnlyMyTickets || isMyTicket);
     }) : [];
 
 
@@ -95,18 +102,26 @@ const TicketFullSearchComponent: React.FC<TicketsListProps> = ({ tickets }) => {
                 return nameA.localeCompare(nameB);
             },
         },
-        //{
-        //    title: 'Projekt',
-        //    dataIndex: 'projectName',
-        //    key: 'projectName',
-        //}
+        {
+            title: 'Projekt',
+            dataIndex: 'projectName',
+            key: 'projectName',
+            render: text => text || 'N/A',
+            sorter: (a, b) => {
+                const nameA = a.project?.name ?? '';
+                const nameB = b.project?.name ?? '';
+                return nameA.localeCompare(nameB);
+            },
+        }
     ];
 
     return (
         <>
             <Space style={{ marginBottom: 16 }}>
                 <Button onClick={clearAll}>Filter und Sortierung zurücksetzen</Button>
-                <Button onClick={seeMyTickets}>Nur Meine Tickets zeigen</Button>
+                <Button onClick={handleShowMyTickets}>
+                    {showOnlyMyTickets ? 'Alle Tickets anzeigen' : 'Nur meine Tickets anzeigen'}
+                </Button>
 
                 <Input
                     addonBefore={<SearchOutlined />}
@@ -115,6 +130,17 @@ const TicketFullSearchComponent: React.FC<TicketsListProps> = ({ tickets }) => {
                     value={searchText}
                 />
 
+                <Select
+                    mode="multiple"
+                    placeholder="Status filtern"
+                    value={selectedStatuses}
+                    onChange={setSelectedStatuses}
+                    style={{ width: 200 }}
+                >
+                    {statusFilters.map(status => (
+                        <Select.Option key={status.value} value={status.value}>{status.text}</Select.Option>
+                    ))}
+                </Select>
             </Space>
             <Table
                 columns={columns}

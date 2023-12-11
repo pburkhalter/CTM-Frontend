@@ -32,6 +32,7 @@ const UserListComponent: React.FC<{ users: User[], myTeammates?: User[], loading
 
     const clearAll = () => {
         setSortedInfo({});
+        setSearchText(''); // Reset the searchText state
     };
 
     const columns: ColumnsType<User> = [
@@ -39,31 +40,31 @@ const UserListComponent: React.FC<{ users: User[], myTeammates?: User[], loading
             title: 'Name',
             dataIndex: 'fullName',
             key: 'fullName',
-            sorter: (a, b) => a.fullName.localeCompare(b.fullName),
-            sortOrder: sortedInfo.columnKey === 'name' ? sortedInfo.order : undefined,
+            sorter: (a, b) => {
+                const nameA = a.fullName || ""; // Fallback to empty string if null
+                const nameB = b.fullName || ""; // Fallback to empty string if null
+                return nameA.localeCompare(nameB);
+            },
+            sortOrder: sortedInfo.columnKey === 'fullName' ? sortedInfo.order : undefined,
             ellipsis: true,
         },
         {
             title: 'Email',
             dataIndex: 'email',
             key: 'email',
-            sorter: (a, b) => a.fullName.localeCompare(b.fullName),
+            sorter: (a, b) => {
+                const emailA = a.email || ""; // Fallback to empty string if null
+                const emailB = b.email || ""; // Fallback to empty string if null
+                return emailA.localeCompare(emailB);
+            },
             sortOrder: sortedInfo.columnKey === 'email' ? sortedInfo.order : undefined,
             ellipsis: true,
-        },
+        }
 
     ];
 
-    const rowSelection: TableRowSelection<User> = {
-        selectedRowKeys,
-        getCheckboxProps: record => ({
-            disabled: selectedRowKeys.includes(record.id), // Disable checkbox for selected rows
-        }),
-        onChange: setSelectedRowKeys,
-    };
-
     const filteredUsers = users && users.length > 0
-        ? users.filter(user => user.fullName.toLowerCase().includes(searchText.toLowerCase()))
+        ? users.filter(user => (user.fullName?.toLowerCase() || "").includes(searchText.toLowerCase()))
         : [];
 
     return (
@@ -72,13 +73,13 @@ const UserListComponent: React.FC<{ users: User[], myTeammates?: User[], loading
                 <Button onClick={clearAll}>Filter und Sortierung zurücksetzen</Button>
                 <Input
                     addonBefore={<SearchOutlined />}
-                    placeholder="Projekt"
+                    placeholder="Benutzer"
                     onChange={handleSearch}
+                    value={searchText}
                     style={{ width: 400 }}
                 />
             </Space>
             <Table
-                rowSelection={rowSelection}
                 columns={columns}
                 dataSource={filteredUsers.map(user => ({ ...user, key: user.id }))}
                 loading={loadingState}

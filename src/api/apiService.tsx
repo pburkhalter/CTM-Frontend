@@ -1,10 +1,10 @@
 // src/api/apiService.ts
-import config from '../config';
+import {appConfig} from '../appConfig';
 import {authService} from "./authService";
 
 const apiService = {
     get: async (endpoint: string, accessToken: string) => {
-        const response = await fetch(`${config.apiUrl}/${endpoint}`, {
+        const response = await fetch(`${appConfig.apiUrl}/${endpoint}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -22,7 +22,7 @@ const apiService = {
     },
 
     post: async (endpoint: string, data: any, accessToken: string) => {
-        const response = await fetch(`${config.apiUrl}/${endpoint}`, {
+        const response = await fetch(`${appConfig.apiUrl}/${endpoint}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -42,7 +42,7 @@ const apiService = {
     },
 
     put: async (endpoint: string, data: any, accessToken: string) => {
-        const response = await fetch(`${config.apiUrl}/${endpoint}`, {
+        const response = await fetch(`${appConfig.apiUrl}/${endpoint}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -62,7 +62,7 @@ const apiService = {
     },
 
     delete: async (endpoint: string, accessToken: string) => {
-        const response = await fetch(`${config.apiUrl}/${endpoint}`, {
+        const response = await fetch(`${appConfig.apiUrl}/${endpoint}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json',

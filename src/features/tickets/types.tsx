@@ -17,6 +17,10 @@ export interface Ticket {
         name: string;
         id: string;
     };
+    project: {
+        name: string | null
+        id: string | null
+    }
 }
 
 export interface NewTicketWithAPI {

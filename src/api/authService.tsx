@@ -1,4 +1,4 @@
-import config from '../config';
+import { appConfig } from '../appConfig';
 import {Credentials} from '../features/auth/types'
 
 async function fetchWithAuth(url: RequestInfo | URL, options: RequestInit | undefined) {
@@ -12,7 +12,7 @@ async function fetchWithAuth(url: RequestInfo | URL, options: RequestInit | unde
 
 export const authService = {
     login: async (credentials: Credentials) => {
-        const response = await fetchWithAuth(`${config.authUrl}/login`, {
+        const response = await fetchWithAuth(`${appConfig.authUrl}/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(credentials),
@@ -30,7 +30,7 @@ export const authService = {
     },
     refresh: async () => {
         const refreshToken = localStorage.getItem('refreshToken');
-        const response = await fetchWithAuth(`${config.authUrl}/refresh`, {
+        const response = await fetchWithAuth(`${appConfig.authUrl}/refresh`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({refreshToken: refreshToken}),
@@ -45,6 +45,7 @@ export const authService = {
     },
 
     logout: async () => {
+        localStorage.removeItem('isAuthenticated');
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
     }

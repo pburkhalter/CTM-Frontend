@@ -1,7 +1,7 @@
 // src/App.tsx
-import React, {useEffect, useState} from 'react';
+import React, {useEffect} from 'react';
 import 'antd/dist/reset.css';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import LoginComponent from './components/auth/LoginComponent';
 import ProjectComponent from './components/projects/ProjectComponent';
 import TicketComponent from './components/tickets/TicketComponent';
@@ -10,7 +10,14 @@ import ProtectedRoute from './components/ProtectedRoute';
 import UserComponent from "./components/users/UserComponent";
 import OverviewComponent from "./components/overview/OverviewComponent";
 
+
+
 const App: React.FC = () => {
+
+    useEffect(() => {
+        document.title = "Capmo Ticket Master";
+    }, []);
+
     return (
         <Router>
             <Routes>
@@ -40,7 +47,8 @@ const App: React.FC = () => {
                         <SettingsComponent />
                     </ProtectedRoute>
                 } />
-                {/* Add more routes as needed */}
+                {/* Catch-all route */}
+                <Route path="*" element={<Navigate to="/login" replace />} />
             </Routes>
         </Router>
     );

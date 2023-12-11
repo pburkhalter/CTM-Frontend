@@ -11,11 +11,12 @@ const ProjectListComponent: React.FC<{ projects: Project[], myProjects?: Project
 
     // Update selectedRowKeys whenever myProjects changes
     useEffect(() => {
-        if (myProjects) {
-            const newSelectedKeys = myProjects.map(p => p.id);
-            setSelectedRowKeys(newSelectedKeys);
-        }
-    }, [myProjects]);
+        const sortedProjects = [...projects].sort((a, b) => a.name.localeCompare(b.name));
+        setSelectedRowKeys(myProjects ? myProjects.map(p => p.id) : []);
+        setSortedInfo({ columnKey: 'name', order: 'ascend' }); // You can set the default sorting order here
+        // Update your state or pass sortedProjects to the table as needed
+    }, [projects, myProjects]);
+
 
     const handleChange = (
         pagination: TablePaginationConfig,
@@ -31,6 +32,7 @@ const ProjectListComponent: React.FC<{ projects: Project[], myProjects?: Project
 
     const clearAll = () => {
         setSortedInfo({});
+        setSearchText(''); // Reset searchText which is also bound to the input field
     };
 
     const columns: ColumnsType<Project> = [
@@ -91,6 +93,7 @@ const ProjectListComponent: React.FC<{ projects: Project[], myProjects?: Project
                 <Input
                     addonBefore={<SearchOutlined />}
                     placeholder="Projekt"
+                    value={searchText}
                     onChange={handleSearch}
                     style={{ width: 400 }}
                 />

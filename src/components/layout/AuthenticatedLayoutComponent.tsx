@@ -5,6 +5,7 @@ import DefaultFooterComponent from "../footer/DefaultFooterComponent";
 import NavigationComponent from "../navigation/NavigationComponent";
 import {ReloadOutlined} from "@ant-design/icons";
 import TicketListComponent from "../tickets/TicketListComponent";
+import AuthenticatedHeaderComponent from "../header/AuthenticatedHeaderComponent";
 
 const { Header, Footer, Sider, Content } = Layout;
 
@@ -36,7 +37,7 @@ const AuthenticatedLayoutComponent: React.FC<AuthenticatedLayoutComponentProps> 
 
     return (
             <Layout style={layoutStyle}>
-                <Header style={headerStyle}></Header>
+                <AuthenticatedHeaderComponent></AuthenticatedHeaderComponent>
                 <Layout>
                     <Content style={contentStyle}>
                         <Flex vertical gap={30}>

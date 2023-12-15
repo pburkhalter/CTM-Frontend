@@ -10,7 +10,7 @@ const prodConfig = {
     release: 'PROD'
 };
 
-export const appConfig = prodConfig
+export const appConfig = devConfig
 
 export const appVersion = {
     version_major: 0,

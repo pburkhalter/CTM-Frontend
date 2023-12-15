@@ -48,16 +48,20 @@ const TicketFullSearchComponent: React.FC<TicketsListProps> = ({ tickets }) => {
         const matchesStatus = selectedStatuses.length === 0 || selectedStatuses.includes(ticket.status?.name);
         const lowerCaseSearchText = searchText.toLowerCase();
 
-        const projectName = ticket.project?.name?.toLowerCase() || '';
+        // Guard against null values
+        const ticketName = ticket.name ? ticket.name.toLowerCase() : '';
+        const responsibleName = ticket.responsible?.fullName ? ticket.responsible.fullName.toLowerCase() : '';
+        const projectName = ticket.project?.name ? ticket.project.name.toLowerCase() : '';
 
-        const matchesSearchText = ticket.name.toLowerCase().includes(lowerCaseSearchText) ||
-            ticket.responsible?.fullName.toLowerCase().includes(lowerCaseSearchText) ||
+        const matchesSearchText = ticketName.includes(lowerCaseSearchText) ||
+            responsibleName.includes(lowerCaseSearchText) ||
             projectName.includes(lowerCaseSearchText);
 
         const isMyTicket = ticket.responsible?.fullName === localStorage.getItem('fullName');
 
         return matchesStatus && (matchesSearchText || searchText.trim() === '') && (!showOnlyMyTickets || isMyTicket);
     }) : [];
+
 
 
     const columns: ColumnsType<Ticket> = [

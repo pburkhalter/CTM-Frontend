@@ -75,12 +75,12 @@ For deploying the frontend application, you can serve the static files generated
 
 1.  Install Nginx on your server.
 
-2.  Configure Nginx to serve your React application. Create a new configuration file in `/etc/nginx/sites-available/` and link it to `/etc/nginx/sites-enabled/`.
+2.  Configure Nginx to serve the application. Create a new configuration file in `/etc/nginx/sites-available/` and link it to `/etc/nginx/sites-enabled/`.
 
     ```
     server {
     listen 80;
-    server_name your_domain.com;
+    server_name tickets.local;
 
         location / {
             root /path/to/your/build/folder;

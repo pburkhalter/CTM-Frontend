@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Button, Input, Space, Table, Tag } from 'antd';
 import { SearchOutlined } from "@ant-design/icons";
-import type { ColumnsType, TableRowSelection, TablePaginationConfig, SorterResult, FilterValue } from 'antd/es/table/interface';
+import type { ColumnsType, TablePaginationConfig, SorterResult, FilterValue } from 'antd/es/table/interface';
 import {Project} from "../../features/projects/types";
 
 const ProjectListComponent: React.FC<{ projects: Project[], myProjects?: Project[], loadingState: boolean }> = ({ projects, myProjects, loadingState }) => {
@@ -11,10 +11,9 @@ const ProjectListComponent: React.FC<{ projects: Project[], myProjects?: Project
 
     // Update selectedRowKeys whenever myProjects changes
     useEffect(() => {
-        const sortedProjects = [...projects].sort((a, b) => a.name.localeCompare(b.name));
+        [...projects].sort((a, b) => a.name.localeCompare(b.name));
         setSelectedRowKeys(myProjects ? myProjects.map(p => p.id) : []);
         setSortedInfo({ columnKey: 'name', order: 'ascend' }); // You can set the default sorting order here
-        // Update your state or pass sortedProjects to the table as needed
     }, [projects, myProjects]);
 
 
@@ -73,14 +72,6 @@ const ProjectListComponent: React.FC<{ projects: Project[], myProjects?: Project
             ellipsis: true,
         },
     ];
-
-    const rowSelection: TableRowSelection<Project> = {
-        selectedRowKeys,
-        getCheckboxProps: record => ({
-            disabled: selectedRowKeys.includes(record.id), // Disable checkbox for selected rows
-        }),
-        onChange: setSelectedRowKeys,
-    };
 
     const filteredProjects = projects && projects.length > 0
         ? projects.filter(project => project.name.toLowerCase().includes(searchText.toLowerCase()))

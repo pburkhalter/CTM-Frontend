@@ -9,7 +9,7 @@ import {fetchMyTeammates, fetchAllUsers, fetchExternalUsers} from "../../feature
 
 const UserComponent: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
-    const { myTeammates, allUsers, loading, externalUsers } = useSelector((state: RootState) => state.users);
+    const { myTeammates, loading, externalUsers } = useSelector((state: RootState) => state.users);
 
     useEffect(() => {
         dispatch(fetchMyTeammates());

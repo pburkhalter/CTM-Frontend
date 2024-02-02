@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useCallback, useMemo, Dispatch} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {Button, Input, Select, Space, Table, DatePicker, Flex, Pagination, Tooltip} from 'antd';
 import {
     CloseOutlined,
@@ -23,14 +23,13 @@ const { Option } = Select;
 const statusOptions = ["Offen", "Geschlossen", "Freigemeldet", "In Bearbeitung"];
 const defaultStatusOptions = ["Offen", "Freigemeldet", "In Bearbeitung"];
 
-const TicketListComponent: React.FC<TicketsListProps> = ({ project: project }) => {
+const TicketListComponent: React.FC<TicketsListProps> = ({ project }) => {
     const [data, setData] = useState<Ticket[]>([]);
     const [addingTicket, setAddingTicket] = useState(false);
     const [searchText, setSearchText] = useState('');
     const [selectedStatuses, setSelectedStatuses] = useState<string[]>(defaultStatusOptions);
     const [editingTicketId, setEditingTicketId] = useState<string | null>(null);
     const [pagination, setPagination] = useState({ current: 1, pageSize: 10 });
-    const [showNonArchivedOnly, setShowNonArchivedOnly] = useState(false);
     const [showOnlyMyTickets, setShowOnlyMyTickets] = useState<boolean>(false);
 
     const dispatch = useDispatch<AppDispatch>();

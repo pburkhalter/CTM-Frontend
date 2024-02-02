@@ -1,12 +1,12 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import {AppDispatch, RootState} from "../../store/store";
 import {useDispatch, useSelector} from "react-redux";
 import {Divider, Typography} from "antd";
-import {appConfig, appVersion} from "../../appConfig";
-const { Text, Link } = Typography;
+import {appVersion} from "../../appConfig";
+const { Text} = Typography;
 
 const DefaultFooterComponent: React.FC = () => {
-    const dispatch = useDispatch<AppDispatch>();
+    useDispatch<AppDispatch>();
     const { version_release, version_minor, version_major, version_patch } = useSelector((state: RootState) => appVersion);
 
     return (

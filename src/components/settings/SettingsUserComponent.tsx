@@ -1,13 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { Card, Button, Spin, Row, Col, Flex, Typography, Space } from 'antd';
+import React, { useEffect } from 'react';
+import { Button, Typography, Space } from 'antd';
 import { UserOutlined } from '@ant-design/icons';
 import { fetchSettings } from '../../features/settings/settingsSlice';
 import { authService } from '../../api/authService';
 import { useNavigate } from 'react-router-dom';
-const { Text, Title } = Typography;
+const {Title } = Typography;
 
 const SettingsUserComponent: React.FC = () => {
-    const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {

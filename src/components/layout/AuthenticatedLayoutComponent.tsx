@@ -1,23 +1,15 @@
-import React, {useState, useEffect, ReactNode} from 'react';
+import React, {ReactNode} from 'react';
 
-import {Layout, Space, Card, Avatar, Flex, Button} from "antd";
+import {Layout, Flex} from "antd";
 import DefaultFooterComponent from "../footer/DefaultFooterComponent";
 import NavigationComponent from "../navigation/NavigationComponent";
-import {ReloadOutlined} from "@ant-design/icons";
-import TicketListComponent from "../tickets/TicketListComponent";
 import AuthenticatedHeaderComponent from "../header/AuthenticatedHeaderComponent";
 
-const { Header, Footer, Sider, Content } = Layout;
+const {Footer, Content } = Layout;
 
 const layoutStyle: React.CSSProperties = {
     minHeight: '100vh',
     flexDirection: 'column'
-};
-
-const headerStyle: React.CSSProperties = {
-    textAlign: 'center',
-    height: 64,
-    background: '#f5f5f5'
 };
 
 const contentStyle: React.CSSProperties = {

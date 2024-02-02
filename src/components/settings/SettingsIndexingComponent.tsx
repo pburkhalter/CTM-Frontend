@@ -1,7 +1,6 @@
 import React, {useEffect, useState} from 'react';
-import {Card, Button, Spin, Row, Col, Flex, Typography, Space, Divider} from 'antd';
+import {Button, Spin, Flex, Typography, Space} from 'antd';
 import { ReloadOutlined } from '@ant-design/icons';
-import AuthenticatedLayoutComponent from '../layout/AuthenticatedLayoutComponent';
 import apiService from '../../api/apiService';
 import {fetchSettings} from "../../features/settings/settingsSlice";
 import {useDispatch, useSelector} from "react-redux";
@@ -23,7 +22,7 @@ const SettingsIndexingComponent: React.FC = () => {
         try {
             const accessToken = localStorage.getItem('accessToken');
             if (accessToken) {
-                const data = await apiService.get('service/init', accessToken);
+                await apiService.get('service/init', accessToken);
             }
 
         } catch (error) {

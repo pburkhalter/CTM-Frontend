@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Button, Card, Divider } from 'antd';
+import { Card, Divider } from 'antd';
 import { AppDispatch, RootState } from '../../store/store';
 import OverviewListComponent from './OverviewListComponent';
 import { fetchMyProjects } from '../../features/projects/projectSlice';

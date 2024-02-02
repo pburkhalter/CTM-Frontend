@@ -11,7 +11,7 @@ interface TicketsListProps {
 }
 
 const TicketFullSearchComponent: React.FC<TicketsListProps> = ({ tickets }) => {
-    const [sortedInfo, setSortedInfo] = useState<SorterResult<Ticket>>({});
+    const [, setSortedInfo] = useState<SorterResult<Ticket>>({});
     const [searchText, setSearchText] = useState('');
     const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
     const [showOnlyMyTickets, setShowOnlyMyTickets] = useState<boolean>(false);

@@ -1,6 +1,5 @@
 import {createAsyncThunk, createSlice} from '@reduxjs/toolkit';
 import apiService from "../../api/apiService";
-import {stat} from "fs";
 
 export const fetchSettings = createAsyncThunk(
     'settings/fetchSettings',

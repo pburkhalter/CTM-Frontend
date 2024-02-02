@@ -1,12 +1,11 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useDispatch } from 'react-redux';
 import { Typography, Avatar } from 'antd';
-import { fetchSettings } from '../../features/settings/settingsSlice';
 
 const { Text } = Typography;
 
 const AuthenticatedHeaderComponent: React.FC = () => {
-    const dispatch = useDispatch();
+    useDispatch();
 
     // Retrieve user data from localStorage
     const fullName = localStorage.getItem('fullName') || 'Unknown User';

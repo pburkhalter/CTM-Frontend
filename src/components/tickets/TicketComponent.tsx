@@ -1,6 +1,6 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Button, Card, Collapse, Divider, Flex, Switch } from "antd";
+import { Card, Collapse, Divider, Flex, Switch } from "antd";
 import { AppDispatch, RootState } from '../../store/store';
 import TicketListComponent from './TicketListComponent';
 import { fetchMyProjects } from "../../features/projects/projectSlice";
@@ -29,10 +29,6 @@ const TicketComponent: React.FC = () => {
 
         dispatch(fetchMyProjects());
     }, [dispatch]);
-
-    const handleReloadProjects = () => {
-        dispatch(fetchMyProjects());
-    };
 
     const handleNonArchivedSwitchChange = (checked: boolean) => {
         localStorage.setItem('showNonArchivedProjects', JSON.stringify(checked));

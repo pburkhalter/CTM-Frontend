@@ -1,14 +1,14 @@
 import React from 'react';
-import {Form, Input, Button, Checkbox, Divider} from 'antd';
+import {Form, Input, Button, Divider} from 'antd';
 import { useDispatch } from 'react-redux';
 import { Credentials } from "../../features/auth/types";
 import { AppDispatch } from '../../store/store'; // Import AppDispatch
 import { authService } from '../../api/authService'
 import {useNavigate} from "react-router-dom";
 import {loginSuccess} from "../../features/auth/authSlice";
-import { Space, Typography } from 'antd';
+import { Typography } from 'antd';
 
-const { Title, Paragraph, Text, Link } = Typography;
+const {Text} = Typography;
 const LoginFormComponent: React.FC = () => {
     const dispatch = useDispatch<AppDispatch>();
     const navigate = useNavigate();

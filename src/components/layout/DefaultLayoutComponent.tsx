@@ -1,8 +1,7 @@
 import React, {ReactNode} from 'react';
-
 import {Layout, Space} from "antd";
 
-const { Header, Footer, Sider, Content } = Layout;
+const { Header, Content } = Layout;
 
 const layoutStyle: React.CSSProperties = {
     minHeight: '100vh',
@@ -27,10 +26,6 @@ const contentStyle: React.CSSProperties = {
     alignItems: 'center',
     width: '100%',
     height: '100%',
-};
-
-const footerStyle: React.CSSProperties = {
-    textAlign: 'center',
 };
 
 type DefaultLayoutComponentProps = {

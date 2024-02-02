@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Button, Input, Space, Table, Tag } from 'antd';
+import { Button, Input, Space, Table } from 'antd';
 import { SearchOutlined } from "@ant-design/icons";
-import type { ColumnsType, TableRowSelection, TablePaginationConfig, SorterResult, FilterValue } from 'antd/es/table/interface';
+import type { ColumnsType, TablePaginationConfig, SorterResult, FilterValue } from 'antd/es/table/interface';
 import {User} from "../../features/users/types";
 
 
